@@ -41,4 +41,15 @@ public class Account implements Identified<Integer>{
     public boolean isBlocked() {
         return isBlocked;
     }
+
+    public void setBlocked(boolean blocked) {
+        isBlocked = blocked;
+    }
+
+    public void addBalance(BigDecimal amount) {
+        accountBalance = accountBalance.add(amount);
+    }
+    public void deductBalance(BigDecimal amount) {
+        accountBalance = accountBalance.subtract(amount);
+    }
 }

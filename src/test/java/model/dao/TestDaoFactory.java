@@ -1,5 +1,6 @@
 package model.dao;
 
+import model.dao.exception.DaoException;
 import model.dao.impl.DaoFactory;
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,7 +34,12 @@ public class TestDaoFactory {
 
     @Test
     public void testDaoManager() {
-        IDaoManager daoManager = DaoFactory.INSTANCE.getDaoManager();
+        IDaoManager daoManager = null;
+        try {
+            daoManager = DaoFactory.INSTANCE.getDaoManager();
+        } catch (DaoException e) {
+            e.printStackTrace();
+        }
         Assert.assertTrue(daoManager!=null);
     }
 }

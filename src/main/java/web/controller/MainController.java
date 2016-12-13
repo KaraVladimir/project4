@@ -29,23 +29,17 @@ public class MainController extends HttpServlet {
         process(req, resp);
     }
 
-    private void process(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        LOG.debug("Controller starts");
-        Command command = CommandKeeper.get(req.getRequestURI());
-        LOG.trace("URI:" + req.getRequestURI());
-        LOG.trace("Command:" + command);
+    private void process(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        LOG.trace(request.getRequestURI());
+        String forwardPage = null;
+        Command command = CommandKeeper.INSTANCE.get(request.getRequestURI());
+        forwardPage = command.execute(request, response);
+        if (forwardPage != null) {
+            LOG.trace(command);
+            request.getRequestDispatcher(forwardPage).forward(request, response);
+        } else {
+            response.sendRedirect(request.getContextPath()+forwardPage);
+        }
 
-        if (command == null) {
-//            resp.sendRedirect(Pages.LOGIN_PATH);
-            return;
-        }
-        try {
-            String forward = command.execute(req, resp);
-            LOG.trace("Forward:"+forward);
-            req.getRequestDispatcher(forward).forward(req,resp);
-        } catch (DaoException e) {
-            e.printStackTrace();
-        }
-        return;
     }
 }

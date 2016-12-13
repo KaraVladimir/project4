@@ -27,7 +27,7 @@ public final class Fields {
     public static final String PAY_ID = "idPay";
     public static final String PAY_TIME = "timeStampPay";
     public static final String PAY_AMOUNT = "amountPay";
-    public static final String PAY_TYPE = "typeOfPay";
+    public static final String PAY_TYPE = "typePay";
     public static final String PAY_ID_SENDER_CLIENT = "FK_Pay_idSenderCl";
     public static final String PAY_ID_SENDER_ACCOUNT = "FK_Pay_idSenderAcc";
     public static final String PAY_ID_SENDER_CARD = "FK_Pay_idSenderCc";

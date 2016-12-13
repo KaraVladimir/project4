@@ -3,20 +3,26 @@ package model.dao.impl;
 import model.dao.HaveUniqueField;
 import model.dao.Identified;
 import model.dao.exception.DaoException;
+import model.entities.Client;
 import model.entities.User;
+import org.apache.log4j.Logger;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Dao object for {@link User}
  * @author kara.vladimir2@gmail.com.
  */
 public class UserDaoImpl extends AbstractDaoImpl implements HaveUniqueField{
+    private static final Logger LOG = Logger.getLogger(UserDaoImpl.class);
+
     public static final String QUERY_SAVE = "INSERT INTO user("+ Fields.USR_LOGIN+
             ","+Fields.USR_PASS+","+Fields.USR_IS_ADMIN+","+Fields.USR_ID_CLIENT+")" + " VALUES(?,?,?,?);";
     public static final String QUERY_SELECT_ALL = "SELECT * FROM user " +
@@ -65,7 +71,7 @@ public class UserDaoImpl extends AbstractDaoImpl implements HaveUniqueField{
 
     @Override
     public PreparedStatement prepareStatementForUpdate
-            (PreparedStatement preparedStatement, Identified identified) {
+            (PreparedStatement preparedStatement, Identified identified) throws DaoException {
         User user = (User) identified;
         try {
             preparedStatement.setString(1, user.getLogin());
@@ -73,26 +79,26 @@ public class UserDaoImpl extends AbstractDaoImpl implements HaveUniqueField{
             preparedStatement.setBoolean(3,user.isAdmin());
             preparedStatement.setInt(4,user.getID());
         } catch (SQLException e) {
-            throw new DaoException(ERR_UPDATE, e);
+            throw new DaoException(getLogger(),ERR_UPDATE, e);
         }
         return preparedStatement;
     }
 
     @Override
-    public PreparedStatement prepareStatementForSave(PreparedStatement preparedStatement, Identified identified) {
+    public PreparedStatement prepareStatementForSave(PreparedStatement preparedStatement, Identified identified) throws DaoException {
         User user = (User) identified;
         try {
             preparedStatement.setString(1, user.getLogin());
             preparedStatement.setString(2, user.getPassword());
             preparedStatement.setBoolean(3,user.isAdmin());
         } catch (SQLException e) {
-            throw new DaoException(ERR_SAVE, e);
+            throw new DaoException(getLogger(),ERR_SAVE, e);
         }
         return preparedStatement;
     }
 
     @Override
-    public List<Identified> parseResultSetGen(ResultSet resultSet) {
+    public List<Identified> parseResultSetGen(ResultSet resultSet) throws DaoException {
         List<Identified> list = (List<Identified>) parseResultSet(resultSet);
         return list;
     }
@@ -108,25 +114,38 @@ public class UserDaoImpl extends AbstractDaoImpl implements HaveUniqueField{
     }
 
     @Override
-    public List<? super User> parseResultSet(ResultSet rs) {
-        List<User> listResult = new ArrayList<>();
+    public List<? super User> parseResultSet(ResultSet rs) throws DaoException {
+        ClientDaoImpl clientDao = new ClientDaoImpl();
+        Map<Number, User> userMap = new HashMap<>();
+        Map<Number, Client> clientMap = new HashMap<>();
         try {
             while (rs.next()) {
-                listResult.add(parseResult(rs));
+                userMap.put(rs.getInt(Fields.USR_ID), parseResult(rs));
+                clientMap.put(rs.getInt(Fields.CL_ID), clientDao.parseResult(rs));
+            }
+            rs.beforeFirst();
+            while (rs.next()) {
+                userMap.get(rs.getInt(Fields.USR_ID)).setClient(
+                        clientMap.get(rs.getInt(Fields.USR_ID_CLIENT)));
             }
         } catch (SQLException e) {
-            throw new DaoException(ERR_PARSING, e);
+            throw new DaoException(getLogger(),ERR_PARSING, e);
         }
-        return listResult;
+        return new ArrayList<>(userMap.values());
     }
 
     @Override
-    public User parseResult(ResultSet rs) {
+    public User parseResult(ResultSet rs) throws DaoException {
         try {
             return new User(rs.getInt(Fields.USR_ID),rs.getString(Fields.USR_LOGIN),
                     rs.getString(Fields.USR_PASS),rs.getBoolean(Fields.USR_IS_ADMIN));
         } catch (SQLException e) {
-            throw new DaoException(ERR_PARSING, e);
+            throw new DaoException(getLogger(),ERR_PARSING, e);
         }
+    }
+
+    @Override
+    public Logger getLogger() {
+        return LOG;
     }
 }

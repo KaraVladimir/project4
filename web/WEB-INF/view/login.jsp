@@ -5,8 +5,7 @@
 <body>
 <%@include file="/WEB-INF/view/parts/header.jsp" %>
 <div id="content">
-    <form class="content-container" action="/page/login" method="post">
-        <%--<input type="hidden" name="command" value="login">--%>
+    <form class="content-container" action="${Pages.PATH_HOME}" method="post">
         <div class="form-title">
             <fmt:message key="login.form"/>
         </div>

@@ -3,6 +3,7 @@ package model.entities;
 import model.dao.Identified;
 import model.entities.CreditCard;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -14,7 +15,7 @@ public class Client implements Identified<Integer> {
     private String familyName;
     private String name;
     private String email;
-    private List<CreditCard> creditCards;
+    private List<CreditCard> creditCards = new ArrayList<>();
 
     public Client(String familyName, String name, String email) {
         this.familyName = familyName;

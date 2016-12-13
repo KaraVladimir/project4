@@ -45,4 +45,12 @@ public class CreditCard implements Identified<Integer> {
     public Account getAccount() {
         return account;
     }
+
+    public void setClient(Client client) {
+        this.client = client;
+    }
+
+    public void setAccount(Account account) {
+        this.account = account;
+    }
 }

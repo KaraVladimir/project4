@@ -6,7 +6,7 @@
     <display-name>Payments</display-name>
 
     <session-config>
-        <session-timeout>1</session-timeout>
+        <session-timeout>15</session-timeout>
     </session-config>
     <servlet>
         <servlet-name>controller</servlet-name>
@@ -29,12 +29,21 @@
         <filter-name>encFilter</filter-name>
         <url-pattern>/page/*</url-pattern>
     </filter-mapping>
+    <filter>
+        <filter-name>secFilter</filter-name>
+        <filter-class>web.filters.SecurityFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>secFilter</filter-name>
+        <url-pattern>/page/*</url-pattern>
+    </filter-mapping>
+    
     
     <listener>
         <listener-class>web.listener.ServletListener</listener-class>
     </listener>
 
     <welcome-file-list>
-        <welcome-file>login.jsp</welcome-file>
+        <welcome-file>/WEB-INF/view/login.jsp</welcome-file>
     </welcome-file-list>
 </web-app>

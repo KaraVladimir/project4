@@ -1,5 +1,7 @@
 package model.dao;
 
+import model.dao.exception.DaoException;
+
 import java.io.Serializable;
 import java.sql.Connection;
 import java.util.List;
@@ -10,13 +12,13 @@ import java.util.List;
  */
 public interface GenericDao<T extends Identified<PK>,PK extends Number> {
 
-    T save(T t);
+    T save(T t) throws DaoException;
 
-    T read(PK prKey);
+    T read(PK prKey) throws DaoException;
 
-    void update(T t);
+    void update(T t) throws DaoException;
 
-    void delete(T t);
+    void delete(T t) throws DaoException;
 
-    List<T> readAll();
+    List<T> readAll() throws DaoException;
 }

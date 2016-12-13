@@ -20,6 +20,16 @@ public class Payment implements Identified<Integer>{
     private CreditCard senderCard;
     private Account recipientAccount;
 
+    public Payment(BigDecimal amount, TypeOfPayment typeOfPayment,
+                   Client senderClient,Account senderAccount, CreditCard senderCard, Account recipientAccount) {
+        this.amount = amount;
+        this.typeOfPayment = typeOfPayment;
+        this.senderClient = senderClient;
+        this.senderAccount = senderAccount;
+        this.senderCard = senderCard;
+        this.recipientAccount = recipientAccount;
+    }
+
     public Payment(Timestamp timestamp, BigDecimal amount, TypeOfPayment typeOfPayment) {
         this.timestamp = timestamp;
         this.amount = amount;
@@ -63,5 +73,21 @@ public class Payment implements Identified<Integer>{
 
     public Integer getID() {
         return id;
+    }
+
+    public void setSenderClient(Client senderClient) {
+        this.senderClient = senderClient;
+    }
+
+    public void setSenderAccount(Account senderAccount) {
+        this.senderAccount = senderAccount;
+    }
+
+    public void setSenderCard(CreditCard senderCard) {
+        this.senderCard = senderCard;
+    }
+
+    public void setRecipientAccount(Account recipientAccount) {
+        this.recipientAccount = recipientAccount;
     }
 }
