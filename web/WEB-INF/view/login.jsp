@@ -18,6 +18,7 @@
             <input class="submit-button" type="submit" value="<fmt:message key="login.button"/>"/>
         </div>
     </form>
+    <%@include file="/WEB-INF/view/parts/message_container.jsp"%>
 </div>
 
 <%--TODO footer in all jsp--%>

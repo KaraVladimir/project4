@@ -19,6 +19,7 @@ public final class Attrs {
     public static final String ACCOUNT_ID = "acc_ID";
     public static final String ACCOUNT = "account";
     public static final String AVAILABLE_ACCOUNTS = "availableAccounts";
+    public static final String BLOCKED_ACCOUNTS = "blockedAccounts";
     public static final String ACC_NUMBER = "number";
     public static final String ACC_AMOUNT = "amount";
 

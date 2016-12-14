@@ -26,6 +26,6 @@ Factory Method, Command, Builder, Strategy, State, Observer etc.
 
 //TODO 1 переход неавторизованных по прямым ссылкам
 //todo 3 интерфейс в дао
-//todo 4 проброс ексепшнов в комманды и логгирование
-//todo 5 пройтись еще раз по хардкоду и ==
+//todo 4 логгирование(выровнять ID в тексте, проверить daily rolling), сообщения и локаль
 //todo 8 user taglib
+//todo 9 позакрывать prepared statement (try observer)

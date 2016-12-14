@@ -17,19 +17,13 @@ public enum  CommandKeeper {
 
     private static Map<String,Command> mapInit() {
         Map<String, Command> map = new TreeMap<>();
-        // common commands
         map.put(Pages.PATH_HOME, new LoginCommand());
         map.put(Pages.PATH_LOGOUT, new LogoutCommand());
         map.put(Pages.PATH_UNBLOCK, new UnblockCommand());
         map.put(Pages.PATH_FIND_ACCOUNT, new FindAccountCommand());
-        map.put(Pages.PATH_FIND_ACCOUNT_FOR_PAY, new FindAccountCommand());
-        map.put(Pages.PATH_PAY, new FindClientAccountsCommand());
-        map.put(Pages.PATH_REFILL, new FindClientAccountsCommand());
-        map.put(Pages.PATH_BLOCK, new FindClientAccountsCommand());
-        map.put(Pages.COM_BLOCK, new BlockCommand());
-        map.put(Pages.COM_PAY, new PayCommand());
-        map.put(Pages.COM_REFILL, new RefillCommand());
-
+        map.put(Pages.PATH_PAY, new PayCommand());
+        map.put(Pages.PATH_REFILL, new RefillCommand());
+        map.put(Pages.PATH_BLOCK, new BlockCommand());
         return map;
     }
 

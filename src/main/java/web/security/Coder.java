@@ -2,6 +2,7 @@ package web.security;
 
 import model.dao.exception.DaoException;
 import org.apache.log4j.Logger;
+import web.config.Msgs;
 
 import java.math.BigInteger;
 import java.security.MessageDigest;
@@ -14,7 +15,6 @@ public enum  Coder {
 
     INSTANCE;
 
-    public static final String CODER_ERROR = "coder error";
     private static final Logger LOG = Logger.getLogger(Coder.class);
 
 
@@ -27,7 +27,7 @@ public enum  Coder {
             messageDigest.update(pwd.getBytes());
             digest = messageDigest.digest();
         } catch (NoSuchAlgorithmException e) {
-            throw new DaoException(LOG,CODER_ERROR,e);
+            throw new DaoException(LOG, Msgs.CODER_ERROR,e);
         }
         BigInteger bigInt = new BigInteger(1, digest);
         String md5Hex = bigInt.toString(16);

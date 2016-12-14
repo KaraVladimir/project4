@@ -1,6 +1,7 @@
 package service;
 
 import exception.AppException;
+import model.dao.DaoCommand;
 import model.dao.exception.DaoException;
 import model.dao.impl.*;
 import model.entities.Account;
@@ -11,6 +12,7 @@ import service.exception.ServiceException;
 import web.config.Msgs;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * @author kara.vladimir2@gmail.com.
@@ -29,13 +31,12 @@ public enum AccountService {
         return account;
     }
 
-    public Account unblockAccountByNumber(final String number) throws AppException {
+    public Account unblockAccountByID(Integer id) throws AppException {
         Account account = null;
-        if (number == null) return account;
         try (DaoManager daoManager = (DaoManager) DaoFactory.INSTANCE.getDaoManager()) {
             account = (Account) daoManager.transaction(daoManager1 -> {
                 AccountDaoImpl accountDao = (AccountDaoImpl) daoManager1.getDao(Account.class);
-                Account account1 = (Account) accountDao.read(Integer.valueOf(number));
+                Account account1 = (Account) accountDao.read(id);
                 checkAccountIsNull(account1);
                 checkAccountIsNotBlocked(account1);
                 account1.setBlocked(false);
@@ -68,15 +69,20 @@ public enum AccountService {
 
 
 
-    public void pay(Integer accS_id, Account accountRecipient, BigDecimal amount) throws AppException {
+    public Payment pay(Integer accS_id, String number, BigDecimal amount) throws AppException {
+        Payment payment = null;
         try (DaoManager daoManager = (DaoManager) DaoFactory.INSTANCE.getDaoManager()) {
             AccountDaoImpl accountDao = (AccountDaoImpl) daoManager.getDao(Account.class);
             PaymentDaoImpl paymentDao = (PaymentDaoImpl) daoManager.getDao(Payment.class);
             CreditCardDaoImpl creditCardDao = (CreditCardDaoImpl) daoManager.getDao(CreditCard.class);
 
-            Payment payment = (Payment) daoManager.transaction(daoManager1 -> {
+            payment = (Payment) daoManager.transaction(daoManager1 -> {
                 Payment payment1 = null;
                 Account accountSender = (Account) accountDao.read(accS_id);
+
+                Account accountRecipient = (Account) accountDao.findByUniqueField(number);
+                checkAccountIsNull(accountSender);
+                checkAccountIsNull(accountRecipient);
                 checkBalance(amount, accountSender);
                 checkAccountIsBlocked(accountSender);
                 CreditCard creditCardSender = (CreditCard) creditCardDao.
@@ -91,15 +97,17 @@ public enum AccountService {
                 return payment1;
             });
         }
+        return payment;
     }
 
 
-    public void refill(Integer accS_id, BigDecimal amount) throws AppException {
+    public Payment refill(Integer accS_id, BigDecimal amount) throws AppException {
+        Payment payment = null;
         try (DaoManager daoManager = (DaoManager) DaoFactory.INSTANCE.getDaoManager()){
             AccountDaoImpl accountDao = (AccountDaoImpl) daoManager.getDao(Account.class);
             PaymentDaoImpl paymentDao = (PaymentDaoImpl) daoManager.getDao(Payment.class);
 
-            Payment payment = (Payment) daoManager.transaction(daoManager1 -> {
+            payment = (Payment) daoManager.transaction(daoManager1 -> {
                 Payment payment1 = null;
                 Account account = (Account) accountDao.read(accS_id);
                 payment1 = new Payment(amount, TypeOfPayment.REFILL,null,
@@ -111,6 +119,16 @@ public enum AccountService {
             });
 
         }
+        return payment;
+    }
+
+    public List<Account> findBlocked() throws AppException {
+        List<Account> accounts = null;
+        try (DaoManager daoManager = (DaoManager) DaoFactory.INSTANCE.getDaoManager()){
+            AccountDaoImpl accountDao = (AccountDaoImpl) daoManager.getDao(Account.class);
+            accounts = accountDao.findBlockedAccounts();
+        }
+        return accounts;
     }
 
     private void checkAccountIsNull(Account account1) throws ServiceException {

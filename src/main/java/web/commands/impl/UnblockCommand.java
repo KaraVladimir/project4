@@ -1,21 +1,15 @@
 package web.commands.impl;
 
 import exception.AppException;
-import model.dao.DaoCommand;
-import model.dao.exception.DaoException;
-import model.dao.impl.AccountDaoImpl;
-import model.dao.impl.DaoFactory;
-import model.dao.impl.DaoManager;
 import model.entities.Account;
 import org.apache.log4j.Logger;
 import service.AccountService;
 import web.config.Attrs;
-import web.config.Msgs;
 import web.config.Pages;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Objects;
+import java.util.List;
 
 /**
  * @author kara.vladimir2@gmail.com.
@@ -25,11 +19,16 @@ public class UnblockCommand extends AbstractCommand{
 
     @Override
     public String proceedExecute(HttpServletRequest request, HttpServletResponse httpServletResponse) throws AppException {
-        String number = request.getParameter(Attrs.ACCOUNT_ID);
-        checkNullOrEmptyString(LOG,number,INCORRECT_ACCOUNT_NUMBER);
-
-        Account account = AccountService.INSTANCE.unblockAccountByNumber(number);
+        List<Account> accounts = AccountService.INSTANCE.findBlocked();
+        request.setAttribute(Attrs.BLOCKED_ACCOUNTS,accounts);
+        if (request.getParameter(Attrs.EXECUTE)==null||request.getParameter(Attrs.EXECUTE).equals("n")) {
+            return Pages.PAGE_ADMIN_UNBLOCK;
+        }
+        Integer id = getIdFromString(LOG, request.getParameter(Attrs.ACCOUNT_ID), INCORRECT_ACCOUNT_ID);
+        Account account = AccountService.INSTANCE.unblockAccountByID(id);
         request.setAttribute(Attrs.ACCOUNT,account);
+        accounts = AccountService.INSTANCE.findBlocked();
+        request.setAttribute(Attrs.BLOCKED_ACCOUNTS,accounts);
 
         return Pages.PAGE_ADMIN_UNBLOCK;
     }

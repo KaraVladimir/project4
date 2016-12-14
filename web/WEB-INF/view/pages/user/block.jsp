@@ -8,7 +8,7 @@
     <div class="content-bigcontainer">
         <c:if test="${not empty requestScope[Attrs.AVAILABLE_ACCOUNTS]}">
             <form id="block"
-                  action="${Pages.COM_BLOCK}" method="post"
+                  action="${Pages.PATH_BLOCK}" method="post"
                   <%--method="get"--%>
             >
                 <c:set var="accounts" value="${requestScope[Attrs.AVAILABLE_ACCOUNTS]}" scope="request"/>
@@ -24,6 +24,7 @@
                             <td><c:out value="${account.getID()}"/></td>
                             <td><c:out value="${account.getAccountNumber()}"/></td>
                             <td><c:out value="${account.getAccountBalance()}"/></td>
+                            <input type="hidden" name="${Attrs.EXECUTE}" value="y"/>
                             <td>
                                 <button name="${Attrs.ACCOUNT_ID}" value="${account.getID()}">
                                     <img src="${!account.isBlocked()?Pages.PATH_BTN_FAIL:Pages.PATH_BTN_OK}" style="height: 20px;width: 20px"></button>
@@ -35,11 +36,7 @@
             </form>
         </c:if>
     </div>
-    <c:if test="${not empty requestScope[Attrs.MSG] }">
-        <div class="message-container">
-            <fmt:message key="${message}"/>
-        </div>
-    </c:if>
+    <%@include file="/WEB-INF/view/parts/message_container.jsp"%>
 </div>
 </body>
 </html>

@@ -41,8 +41,6 @@ public class CreditCardDaoImpl extends AbstractDaoImpl implements HaveUniqueFiel
             +Fields.CARD_ID_CLIENT+" = ?, "+Fields.CARD_ID_ACCOUNT+" = ? WHERE "+Fields.CARD_ID+"= ?;";
     public static final String QUERY_DELETE = "DELETE * FROM creditCard WHERE "+Fields.CARD_ID+" = ?;";
 
-    private static final String ERR_GET_BY_ACCOUNT_QUERY = "find by account failed";
-
     public CreditCardDaoImpl() {
     }
 

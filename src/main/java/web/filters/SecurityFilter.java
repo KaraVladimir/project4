@@ -22,11 +22,11 @@ public class SecurityFilter implements Filter{
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-        LOG.trace("perehvat");
+        LOG.trace("intercept");
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
         if (request.getSession().getAttribute(Attrs.USER_ID) == null&&!request.getRequestURI().equals(Pages.PATH_HOME)) {
-            response.sendRedirect(Pages.PAGE_OUT);
+            response.sendRedirect(Pages.PAGE_LOGIN);
         }
         filterChain.doFilter(servletRequest, servletResponse);
     }

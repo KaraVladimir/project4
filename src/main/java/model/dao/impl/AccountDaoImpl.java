@@ -26,9 +26,11 @@ public class AccountDaoImpl extends AbstractDaoImpl implements HaveUniqueField {
     public static final String QUERY_LAST_INSERT = QUERY_SELECT_ALL+"WHERE "+ Fields.ACC_ID+" = last_insert_id();";
     public static final String QUERY_FIND_BY_PK = QUERY_SELECT_ALL+"WHERE "+Fields.ACC_ID+" = ?;";
     public static final String QUERY_FIND_BY_NUMBER = QUERY_SELECT_ALL+"WHERE "+Fields.ACC_NUMBER+" = ?;";
+    public static final String QUERY_FIND_BLOCKED = QUERY_SELECT_ALL+"WHERE "+Fields.ACC_IS_BLOCKED+" = true;";
     public static final String QUERY_UPDATE = "UPDATE account SET " +Fields.ACC_NUMBER+"= ?, "
             +Fields.ACC_BALANCE+" = ?, "+Fields.ACC_IS_BLOCKED+" = ? WHERE "+Fields.ACC_ID+"= ?;";
     public static final String QUERY_DELETE = "DELETE * FROM account WHERE "+Fields.ACC_ID+" = ?;";
+
 
     public AccountDaoImpl() {}
 
@@ -133,6 +135,17 @@ public class AccountDaoImpl extends AbstractDaoImpl implements HaveUniqueField {
         } catch (SQLException e) {
             throw new DaoException(getLogger(),ERR_PARSING, e);
         }
+    }
+
+    public List<Account> findBlockedAccounts() throws DaoException {
+        List<Account> accounts;
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(QUERY_FIND_BLOCKED);
+            accounts = (List<Account>) parseResultSet(preparedStatement.executeQuery());
+        } catch (SQLException e) {
+            throw new DaoException(getLogger(),ERR_GET_BLOCKED_QUERY,e);
+        }
+        return accounts;
     }
 
     @Override

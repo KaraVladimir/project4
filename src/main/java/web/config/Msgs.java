@@ -11,4 +11,7 @@ public final class Msgs {
     public static final String ACCOUNT_FORMAT_ERROR = "account.format.error";
     public static final String AMOUNT_FORMAT_ERROR = "amount.format.error";
     public static final String NOT_ENOUGH_MONEY = "account.no.money";
+
+    public static final String CODER_ERROR = "coder error";
+
 }

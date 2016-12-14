@@ -1,16 +1,16 @@
 package web.config;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author kara.vladimir2@gmail.com.
  */
 public final class Pages {
     public static final String PAGE_LOGIN = "/WEB-INF/view/login.jsp";
-    public static final String PAGE_OUT = "/WEB-INF/index.html";
-    public static final String PAGE_ERR = "/WEB-INF/pages/error_page.jsp";
-    public static final String PAGE_RESULT = "/WEB-INF/pages/operation_result.jsp";
 
     public static final String PAGE_ADMIN_UNBLOCK = "/WEB-INF/view/pages/admin/unblock.jsp";
-    public static final String PAGE_ADMIN_HOME = "/WEB-INF/view/pages/admin/home.jsp";
+//    public static final String PAGE_ADMIN_HOME = "/WEB-INF/view/pages/admin/home.jsp";
 
     public static final String PAGE_USER_PAY = "/WEB-INF/view/pages/user/pay.jsp";
     public static final String PAGE_USER_HOME = "/WEB-INF/view/pages/user/home.jsp";
@@ -18,7 +18,7 @@ public final class Pages {
     public static final String PAGE_USER_BLOCK = "/WEB-INF/view/pages/user/block.jsp";
 
 
-    public static final String PAGE_ADMIN_START = PAGE_ADMIN_HOME;
+    public static final String PAGE_ADMIN_START = PAGE_ADMIN_UNBLOCK;
     public static final String PAGE_USER_START = PAGE_USER_HOME;
 
 
@@ -29,17 +29,20 @@ public final class Pages {
     public static final String PATH_REFILL = "/page/refill";
     public static final String PATH_BLOCK = "/page/block";
     public static final String PATH_PAY = "/page/pay";
-    public static final String PATH_FIND_ACCOUNT_FOR_PAY ="/page/acc_for_pay";
-
-    public static final String COM_BLOCK ="/page/c_block";
-    public static final String COM_PAY ="/page/c_pay";
-    public static final String COM_REFILL = "/page/c_refill";
-
 
     public static final String PATH_BTN_OK ="/img/buttonFail.png";
     public static final String PATH_BTN_FAIL ="/img/buttonSuccess.png";
 
+    public static Map<String, String> mapTransition = initMap();
 
+    static Map<String, String> initMap() {
+        Map<String, String> map = new HashMap<>();
+        map.put(PATH_UNBLOCK, PAGE_ADMIN_UNBLOCK);
+        map.put(PATH_PAY, PAGE_USER_PAY);
+        map.put(PATH_REFILL, PAGE_USER_REFILL);
+        map.put(PATH_BLOCK, PAGE_USER_BLOCK);
+        map.put(PATH_HOME, PAGE_LOGIN);
 
-    public static final String PATH_REGISTER = "register";
+        return map;
+    }
 }

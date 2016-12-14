@@ -30,6 +30,8 @@ public abstract class AbstractDaoImpl<T extends Identified<PK>,PK extends Number
     public static final String ERR_PARSING = "parsing failed";
     public static final String ERR_UPDATE = "update failed";
     public static final String ERR_SAVE = "save failed";
+    public static final String ERR_GET_BY_ACCOUNT_QUERY = "find by account failed";
+    public static final String ERR_GET_BLOCKED_QUERY = "find blocked accounts failed";
 
     public AbstractDaoImpl() {}
 

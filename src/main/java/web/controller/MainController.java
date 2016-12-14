@@ -38,7 +38,7 @@ public class MainController extends HttpServlet {
             LOG.trace(command);
             request.getRequestDispatcher(forwardPage).forward(request, response);
         } else {
-            response.sendRedirect(request.getContextPath()+forwardPage);
+            response.sendRedirect(request.getContextPath());
         }
 
     }

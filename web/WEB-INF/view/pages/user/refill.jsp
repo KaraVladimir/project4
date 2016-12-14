@@ -5,7 +5,7 @@
 <body>
 <%@include file="/WEB-INF/view/parts/header.jsp" %>
 <div id="content">
-    <form action="${Pages.COM_REFILL}" method="post">
+    <form action="${Pages.PATH_REFILL}" method="post">
         <div class="content-bigcontainer">
             <div>
                 <fmt:message key="your.accounts"/>
@@ -24,14 +24,11 @@
                    oninvalid="setCustomValidity('<fmt:message key="${Msgs.ACCOUNT_FORMAT_ERROR}"/>')"
                    onchange="try{setCustomValidity('')}catch(e){}"/>
             <br/>
+            <input type="hidden" name="${Attrs.EXECUTE}" value="y"/>
             <input class="submit-button" type="submit" value="<fmt:message key="refill.button"/>"/>
         </div>
-        <c:if test="${not empty requestScope[Attrs.MSG] }">
-            <div class="message-container">
-                <fmt:message key="${message}"/>
-            </div>
-        </c:if>
     </form>
+    <%@include file="/WEB-INF/view/parts/message_container.jsp"%>
 </div>
 
 </body>

@@ -25,6 +25,6 @@ public class ServletListener implements ServletContextListener {
 
     private void initLog4J(ServletContext servletContext) {
         PropertyConfigurator.configure(servletContext.getRealPath("WEB-INF/log4j.properties"));
-        LOG.debug("Log4j has been initialized");
+        LOG.trace("Log4j has been initialized");
     }
 }

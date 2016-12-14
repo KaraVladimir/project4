@@ -3,6 +3,7 @@ package web.commands.impl;
 import exception.AppException;
 import model.dao.exception.DaoException;
 import org.apache.log4j.Logger;
+import org.apache.log4j.MDC;
 import service.exception.ServiceException;
 import web.commands.Command;
 import web.config.Attrs;
@@ -29,6 +30,8 @@ public abstract class AbstractCommand implements Command {
     public static final String EMPTY_PASS = "Empty password";
     public static final String INCORRECT_AMOUNT = "Incorrect amount";
     public static final String ACCOUNT_NOT_EXIST = "Account doesn't exist";
+    public static final Object ERR_DB = "DB ERROR!";
+
 
 
     @Override
@@ -37,11 +40,16 @@ public abstract class AbstractCommand implements Command {
         try {
             path = proceedExecute(request, response);
         }catch (ServiceException e){
-            path = Pages.PAGE_USER_PAY;
-            LOG.trace(e.getMessage());
+            path = Pages.mapTransition.get(request.getRequestURI());
             request.setAttribute(Attrs.MSG,e.getMessage());
+            Integer userId = (Integer) request.getSession().getAttribute(Attrs.USER_ID);
+            MDC.put("userID",(userId==null)?"n/a":userId);
             (e.getLogger()).info(e.getMessage());
         } catch (AppException e) {
+            path = Pages.mapTransition.get(request.getRequestURI());
+            request.setAttribute(Attrs.MSG,ERR_DB);
+            Integer userId = (Integer) request.getSession().getAttribute(Attrs.USER_ID);
+            MDC.put("userID",(userId==null)?"n/a":userId);
             (e.getLogger()).error(e.getMessage());
         }
 

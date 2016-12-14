@@ -1,8 +1,10 @@
 package web.commands.impl;
 
 import exception.AppException;
+import model.entities.Account;
 import model.entities.User;
 import org.apache.log4j.Logger;
+import service.AccountService;
 import service.UserService;
 import web.config.Attrs;
 import web.config.Pages;
@@ -10,6 +12,7 @@ import web.security.Coder;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 /**
  * @author kara.vladimir2@gmail.com.
@@ -22,6 +25,9 @@ public class LoginCommand extends AbstractCommand {
     public String proceedExecute(HttpServletRequest request, HttpServletResponse httpServletResponse) throws AppException {
         String login = request.getParameter(Attrs.LOGIN);
         String pwd = request.getParameter(Attrs.PASSWORD);
+
+        List<Account> accounts = AccountService.INSTANCE.findBlocked();
+        request.setAttribute(Attrs.BLOCKED_ACCOUNTS,accounts);
 
         if ((request.getSession().getAttribute(Attrs.USER_ID) != null)) {
             if ((boolean) request.getSession().getAttribute(Attrs.IS_ADMIN)) {

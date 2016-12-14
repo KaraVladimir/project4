@@ -131,9 +131,9 @@ public class PaymentDaoImpl extends AbstractDaoImpl{
             while (rs.next()) {
                 paymentMap.get(rs.getInt(Fields.PAY_ID)).setSenderClient(
                         clientMap.get(rs.getInt(Fields.PAY_ID_SENDER_CLIENT)));
-                paymentMap.get(rs.getInt(Fields.CARD_ID)).setSenderCard(
+                paymentMap.get(rs.getInt(Fields.PAY_ID)).setSenderCard(
                         cardMap.get(rs.getInt(Fields.PAY_ID_SENDER_CARD)));
-                paymentMap.get(rs.getInt(Fields.USR_ID)).setSenderClient(
+                paymentMap.get(rs.getInt(Fields.PAY_ID)).setSenderClient(
                         clientMap.get(rs.getInt(Fields.PAY_ID_SENDER_CLIENT)));
             }
         } catch (SQLException e) {
