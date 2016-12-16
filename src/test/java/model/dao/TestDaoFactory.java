@@ -34,7 +34,7 @@ public class TestDaoFactory {
 
     @Test
     public void testDaoManager() {
-        IDaoManager daoManager = null;
+        DaoManager daoManager = null;
         try {
             daoManager = DaoFactory.INSTANCE.getDaoManager();
         } catch (DaoException e) {

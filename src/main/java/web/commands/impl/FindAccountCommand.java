@@ -3,7 +3,7 @@ package web.commands.impl;
 import exception.AppException;
 import model.entities.Account;
 import org.apache.log4j.Logger;
-import service.AccountService;
+import service.impl.AccountServiceImpl;
 import web.config.Attrs;
 import web.config.Pages;
 
@@ -20,7 +20,7 @@ public class FindAccountCommand extends AbstractCommand{
     public String proceedExecute(HttpServletRequest request, HttpServletResponse httpServletResponse) throws AppException {
         String number = request.getParameter(Attrs.ACC_NUMBER);
         checkNullOrEmptyString(LOG,number,INCORRECT_ACCOUNT_NUMBER);
-        Account account = AccountService.INSTANCE.findAccountByNumber(number);
+        Account account = AccountServiceImpl.getInstance().findAccountByNumber(number);
         request.setAttribute(Attrs.ACCOUNT,account);
         return Pages.PAGE_ADMIN_UNBLOCK;
     }

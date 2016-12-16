@@ -1,12 +1,11 @@
 package model.dao.impl;
 
-import model.dao.HaveUniqueField;
+import model.dao.CreditCardDao;
 import model.dao.Identified;
 import model.dao.exception.DaoException;
 import model.entities.Account;
 import model.entities.Client;
 import model.entities.CreditCard;
-import model.entities.User;
 import org.apache.log4j.Logger;
 
 import java.sql.Connection;
@@ -22,17 +21,14 @@ import java.util.Map;
  * Dao object for {@link CreditCard}
  * @author kara.vladimir2@gmail.com.
  */
-public class CreditCardDaoImpl extends AbstractDaoImpl implements HaveUniqueField{
+public class CreditCardDaoImpl extends AbstractDaoImpl implements CreditCardDao {
     private static final Logger LOG = Logger.getLogger(CreditCardDaoImpl.class);
-
 
     public static final String QUERY_SAVE = "INSERT INTO creditCard("+Fields.CARD_NUMBER+
             ","+Fields.CARD_ID_CLIENT+","+Fields.CARD_ID_ACCOUNT+")" + " VALUES(?,?,?);";
     public static final String QUERY_SELECT_ALL = "SELECT * FROM creditCard " +
             "LEFT JOIN client ON("+Fields.CARD_ID_CLIENT+"="+Fields.CL_ID+")" +
             "LEFT JOIN account ON("+Fields.CARD_ID_ACCOUNT+"="+Fields.ACC_ID+")";
-    public static final String QUERY_LAST_INSERT = QUERY_SELECT_ALL+
-            "WHERE "+Fields.CARD_ID+" = last_insert_id();";
     public static final String QUERY_FIND_BY_PK = QUERY_SELECT_ALL+"WHERE "+Fields.CARD_ID+" = ?;";
     public static final String QUERY_FIND_BY_NUMBER = QUERY_SELECT_ALL+"WHERE "+Fields.CARD_NUMBER+" = ?;";
     public static final String QUERY_FIND_BY_ACCOUNT = QUERY_SELECT_ALL + "WHERE "
@@ -41,9 +37,6 @@ public class CreditCardDaoImpl extends AbstractDaoImpl implements HaveUniqueFiel
             +Fields.CARD_ID_CLIENT+" = ?, "+Fields.CARD_ID_ACCOUNT+" = ? WHERE "+Fields.CARD_ID+"= ?;";
     public static final String QUERY_DELETE = "DELETE * FROM creditCard WHERE "+Fields.CARD_ID+" = ?;";
 
-    public CreditCardDaoImpl() {
-    }
-
     public CreditCardDaoImpl(Connection connection) {
         super(connection);
     }
@@ -51,11 +44,6 @@ public class CreditCardDaoImpl extends AbstractDaoImpl implements HaveUniqueFiel
     @Override
     public String getSaveQuery() {
         return QUERY_SAVE;
-    }
-
-    @Override
-    public String getLastInsertQuery() {
-        return QUERY_LAST_INSERT;
     }
 
     @Override
@@ -106,25 +94,7 @@ public class CreditCardDaoImpl extends AbstractDaoImpl implements HaveUniqueFiel
     }
 
     @Override
-    public List<Identified> parseResultSetGen(ResultSet resultSet) throws DaoException {
-        List<Identified> list = (List<Identified>) parseResultSet(resultSet);
-        return list;
-    }
-
-    @Override
-    public String getQueryFindByUniqueField() {
-        return QUERY_FIND_BY_NUMBER;
-    }
-
-    @Override
-    public Connection getConnection() {
-        return connection;
-    }
-
-    @Override
     public List<? super CreditCard> parseResultSet(ResultSet rs) throws DaoException {
-        ClientDaoImpl clientDao = new ClientDaoImpl();
-        AccountDaoImpl accountDao = new AccountDaoImpl();
 
         Map<Number, CreditCard> cardMap = new HashMap<>();
         Map<Number, Client> clientMap = new HashMap<>();
@@ -133,8 +103,8 @@ public class CreditCardDaoImpl extends AbstractDaoImpl implements HaveUniqueFiel
         try {
             while (rs.next()) {
                 cardMap.put(rs.getInt(Fields.CARD_ID), parseResult(rs));
-                clientMap.put(rs.getInt(Fields.CL_ID), clientDao.parseResult(rs));
-                accountMap.put(rs.getInt(Fields.ACC_ID), accountDao.parseResult(rs));
+                clientMap.put(rs.getInt(Fields.CL_ID), ClientDaoImpl.parseResult(rs));
+                accountMap.put(rs.getInt(Fields.ACC_ID), AccountDaoImpl.parseResult(rs));
             }
             rs.beforeFirst();
             while (rs.next()) {
@@ -149,15 +119,20 @@ public class CreditCardDaoImpl extends AbstractDaoImpl implements HaveUniqueFiel
         return new ArrayList<>(cardMap.values());
     }
 
-    @Override
-    public CreditCard parseResult(ResultSet rs) throws DaoException {
+    public static CreditCard parseResult(String alias,ResultSet rs) throws DaoException {
+        alias = (alias.isEmpty())?alias:alias + ".";
         try {
-            return new CreditCard(rs.getInt(Fields.CARD_ID),rs.getString(Fields.CARD_NUMBER));
+            return new CreditCard(rs.getInt(alias+Fields.CARD_ID),rs.getString(alias+Fields.CARD_NUMBER));
         } catch (SQLException e) {
-            throw new DaoException(getLogger(),ERR_PARSING, e);
+            throw new DaoException(LOG,ERR_PARSING, e);
         }
     }
 
+    public static CreditCard parseResult(ResultSet rs) throws DaoException {
+        return parseResult("", rs);
+    }
+
+    @Override
     public CreditCard findCreditCardByAccount(Account account) throws DaoException {
         List<CreditCard> cardList;
         try {

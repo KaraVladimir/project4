@@ -1,8 +1,8 @@
 package model.dao.impl;
 
-import model.dao.HaveUniqueField;
 import model.dao.Identified;
 import model.dao.exception.DaoException;
+import model.entities.Account;
 import model.entities.Client;
 import model.entities.User;
 import org.apache.log4j.Logger;
@@ -20,14 +20,13 @@ import java.util.Map;
  * Dao object for {@link User}
  * @author kara.vladimir2@gmail.com.
  */
-public class UserDaoImpl extends AbstractDaoImpl implements HaveUniqueField{
+public class UserDaoImpl extends AbstractDaoImpl implements model.dao.UserDao {
     private static final Logger LOG = Logger.getLogger(UserDaoImpl.class);
 
     public static final String QUERY_SAVE = "INSERT INTO user("+ Fields.USR_LOGIN+
             ","+Fields.USR_PASS+","+Fields.USR_IS_ADMIN+","+Fields.USR_ID_CLIENT+")" + " VALUES(?,?,?,?);";
     public static final String QUERY_SELECT_ALL = "SELECT * FROM user " +
             "LEFT JOIN client ON("+Fields.USR_ID_CLIENT+"="+Fields.CL_ID+")";
-    public static final String QUERY_LAST_INSERT = QUERY_SELECT_ALL+"WHERE "+ Fields.USR_ID+" = last_insert_id();";
     public static final String QUERY_FIND_BY_PK = QUERY_SELECT_ALL+"WHERE "+Fields.USR_ID+" = ?;";
     public static final String QUERY_FIND_BY_LOGIN = QUERY_SELECT_ALL+"WHERE "+Fields.USR_LOGIN+" = ?;";
 
@@ -42,11 +41,6 @@ public class UserDaoImpl extends AbstractDaoImpl implements HaveUniqueField{
     @Override
     public String getSaveQuery() {
         return QUERY_SAVE;
-    }
-
-    @Override
-    public String getLastInsertQuery() {
-        return QUERY_LAST_INSERT;
     }
 
     @Override
@@ -98,30 +92,13 @@ public class UserDaoImpl extends AbstractDaoImpl implements HaveUniqueField{
     }
 
     @Override
-    public List<Identified> parseResultSetGen(ResultSet resultSet) throws DaoException {
-        List<Identified> list = (List<Identified>) parseResultSet(resultSet);
-        return list;
-    }
-
-    @Override
-    public String getQueryFindByUniqueField() {
-        return QUERY_FIND_BY_LOGIN;
-    }
-
-    @Override
-    public Connection getConnection() {
-        return connection;
-    }
-
-    @Override
     public List<? super User> parseResultSet(ResultSet rs) throws DaoException {
-        ClientDaoImpl clientDao = new ClientDaoImpl();
         Map<Number, User> userMap = new HashMap<>();
         Map<Number, Client> clientMap = new HashMap<>();
         try {
             while (rs.next()) {
                 userMap.put(rs.getInt(Fields.USR_ID), parseResult(rs));
-                clientMap.put(rs.getInt(Fields.CL_ID), clientDao.parseResult(rs));
+                clientMap.put(rs.getInt(Fields.CL_ID), ClientDaoImpl.parseResult(rs));
             }
             rs.beforeFirst();
             while (rs.next()) {
@@ -134,14 +111,32 @@ public class UserDaoImpl extends AbstractDaoImpl implements HaveUniqueField{
         return new ArrayList<>(userMap.values());
     }
 
-    @Override
-    public User parseResult(ResultSet rs) throws DaoException {
+    public static User parseResult(String alias,ResultSet rs) throws DaoException {
+        alias = (alias.isEmpty())?alias:alias + ".";
         try {
-            return new User(rs.getInt(Fields.USR_ID),rs.getString(Fields.USR_LOGIN),
-                    rs.getString(Fields.USR_PASS),rs.getBoolean(Fields.USR_IS_ADMIN));
+            return new User(rs.getInt(alias+Fields.USR_ID),rs.getString(alias+Fields.USR_LOGIN),
+                    rs.getString(alias+Fields.USR_PASS),rs.getBoolean(alias+Fields.USR_IS_ADMIN));
         } catch (SQLException e) {
-            throw new DaoException(getLogger(),ERR_PARSING, e);
+            throw new DaoException(LOG,ERR_PARSING, e);
         }
+    }
+
+    public static User parseResult(ResultSet rs) throws DaoException {
+        return parseResult("", rs);
+    }
+
+    @Override
+    public User findUserByLogin(String login) throws DaoException {
+        User user = null;
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(QUERY_FIND_BY_LOGIN);
+            preparedStatement.setString(1,login);
+            user = ((List<User>)parseResultSet(preparedStatement.executeQuery())).get(0);
+
+        } catch (SQLException e) {
+            throw new DaoException(getLogger(), ERR_FIND_BY_LOGIN,e);
+        }
+        return user;
     }
 
     @Override

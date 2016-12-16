@@ -26,6 +26,14 @@ public class User implements Identified<Integer>{
         this.isAdmin = isAdmin;
     }
 
+    @Override
+    public void setID(Integer integer) {
+        this.id = integer;
+    }
+    @Override
+    public Integer getID() {
+        return id;
+    }
 
     public Integer getId() {
         return id;
@@ -49,10 +57,5 @@ public class User implements Identified<Integer>{
 
     public void setClient(Client client) {
         this.client = client;
-    }
-
-    @Override
-    public Integer getID() {
-        return id;
     }
 }

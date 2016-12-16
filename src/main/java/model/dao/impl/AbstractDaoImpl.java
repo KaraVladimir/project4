@@ -6,10 +6,7 @@ import model.dao.exception.DaoException;
 import org.apache.log4j.Logger;
 import web.commands.impl.AbstractCommand;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.List;
 
 /**
@@ -30,8 +27,14 @@ public abstract class AbstractDaoImpl<T extends Identified<PK>,PK extends Number
     public static final String ERR_PARSING = "parsing failed";
     public static final String ERR_UPDATE = "update failed";
     public static final String ERR_SAVE = "save failed";
-    public static final String ERR_GET_BY_ACCOUNT_QUERY = "find by account failed";
+
+    public static final String ERR_GET_BY_ACCOUNT_QUERY = "find credit card by account failed";
     public static final String ERR_GET_BLOCKED_QUERY = "find blocked accounts failed";
+    public static final String ERR_GET_PAYMENTS_BY_USER = "Get payments by user failed";
+    public static final String ERR_FIND_BY_NUMBER = "Find by account number failed";
+    public static final String ERR_FIND_BY_EMAIL = "Find client by email failed";
+    public static final String ERR_FIND_BY_LOGIN = "Find user by login failed";
+
 
     public AbstractDaoImpl() {}
 
@@ -40,8 +43,6 @@ public abstract class AbstractDaoImpl<T extends Identified<PK>,PK extends Number
     }
 
     public abstract String getSaveQuery();
-
-    public abstract String getLastInsertQuery();
 
     public abstract String getByPKQuery();
 
@@ -60,29 +61,19 @@ public abstract class AbstractDaoImpl<T extends Identified<PK>,PK extends Number
 
     public abstract List<T> parseResultSet(ResultSet rs) throws DaoException;
 
-    public abstract T parseResult(ResultSet resultSet) throws DaoException;
-
     public Identified<PK> save(Identified identified) throws DaoException {
-        T persistObject = null;
         try {
-            PreparedStatement preparedStatement = connection.prepareStatement(getSaveQuery());
+            PreparedStatement preparedStatement = connection.prepareStatement(getSaveQuery(), Statement.RETURN_GENERATED_KEYS);
             preparedStatement = prepareStatementForSave(preparedStatement, identified);
             preparedStatement.executeUpdate();
+            try (ResultSet rs = preparedStatement.getGeneratedKeys()) {
+                rs.next();
+                identified.setID(rs.getInt(1));
+            }
         } catch (SQLException e) {
             throw new DaoException(getLogger(),ERR_SAVE_QUERY,e);
         }
-        //get last saved entity
-        try {
-            PreparedStatement preparedStatement = connection.prepareStatement( getLastInsertQuery());
-            List<T> tList = parseResultSet(preparedStatement.executeQuery());
-            if (tList == null) {
-                throw new DaoException(getLogger(),ERR_GET_BY_PK_QUERY);
-            }
-            persistObject = tList.get(0);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return persistObject;
+        return identified;
     }
 
     public Identified read(Number prKey) throws DaoException {
@@ -103,7 +94,6 @@ public abstract class AbstractDaoImpl<T extends Identified<PK>,PK extends Number
     public void update(Identified identified) throws DaoException {
         try {
             PreparedStatement preparedStatement = connection.prepareStatement(getUpdateQuery());
-            LOG.trace(preparedStatement);
             preparedStatement = prepareStatementForUpdate(preparedStatement,identified);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {

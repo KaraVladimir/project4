@@ -3,8 +3,9 @@ package web.commands.impl;
 import exception.AppException;
 import model.entities.Account;
 import org.apache.log4j.Logger;
-import service.AccountService;
+import service.impl.AccountServiceImpl;
 import web.config.Attrs;
+import web.config.Msgs;
 import web.config.Pages;
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,15 +20,18 @@ public class UnblockCommand extends AbstractCommand{
 
     @Override
     public String proceedExecute(HttpServletRequest request, HttpServletResponse httpServletResponse) throws AppException {
-        List<Account> accounts = AccountService.INSTANCE.findBlocked();
+        List<Account> accounts = AccountServiceImpl.getInstance().findBlocked();
         request.setAttribute(Attrs.BLOCKED_ACCOUNTS,accounts);
         if (request.getParameter(Attrs.EXECUTE)==null||request.getParameter(Attrs.EXECUTE).equals("n")) {
             return Pages.PAGE_ADMIN_UNBLOCK;
         }
         Integer id = getIdFromString(LOG, request.getParameter(Attrs.ACCOUNT_ID), INCORRECT_ACCOUNT_ID);
-        Account account = AccountService.INSTANCE.unblockAccountByID(id);
+        Account account = AccountServiceImpl.getInstance().unblockAccountByID(id);
+        if (account != null) {
+            request.setAttribute(Attrs.MSG, Msgs.SUCCESS);
+        }
         request.setAttribute(Attrs.ACCOUNT,account);
-        accounts = AccountService.INSTANCE.findBlocked();
+        accounts = AccountServiceImpl.getInstance().findBlocked();
         request.setAttribute(Attrs.BLOCKED_ACCOUNTS,accounts);
 
         return Pages.PAGE_ADMIN_UNBLOCK;

@@ -12,23 +12,28 @@ import java.util.*;
  * Dao object for {@link model.entities.Payment}
  * @author kara.vladimir2@gmail.com.
  */
-public class PaymentDaoImpl extends AbstractDaoImpl{
+public class PaymentDaoImpl extends AbstractDaoImpl implements model.dao.PaymentDao {
     private static final Logger LOG = Logger.getLogger(PaymentDaoImpl.class);
 
     public static final String QUERY_SAVE = "INSERT INTO payment("+Fields.PAY_AMOUNT+","
             +Fields.PAY_TYPE+","+Fields.PAY_ID_SENDER_CLIENT+","+Fields.PAY_ID_SENDER_ACCOUNT+","
             +Fields.PAY_ID_SENDER_CARD+","+Fields.PAY_ID_RECIP_ACCOUNT+")" + " VALUES(?,?,?,?,?,?)";
     public static final String QUERY_SELECT_ALL = "SELECT * FROM payment " +
-            "LEFT JOIN account  ON("+Fields.PAY_ID_SENDER_ACCOUNT+" = "+Fields.ACC_ID+")" +
+            "LEFT JOIN account  as accS ON("+Fields.PAY_ID_SENDER_ACCOUNT+" = accS."+Fields.ACC_ID+")" +
             "LEFT JOIN account as accR ON("+Fields.PAY_ID_SENDER_ACCOUNT+" = accR."+Fields.ACC_ID+")" +
             "LEFT JOIN client ON("+Fields.PAY_ID_SENDER_CLIENT+" = "+Fields.CL_ID+")" +
             "left join creditCard ON("+Fields.PAY_ID_SENDER_CARD+" = "+Fields.CARD_ID+")";
-    public static final String QUERY_LAST_INSERT = QUERY_SELECT_ALL+"WHERE "+ Fields.PAY_ID+" = last_insert_id();";
     public static final String QUERY_FIND_BY_PK = QUERY_SELECT_ALL+"WHERE "+Fields.PAY_ID+" = ?;";
     //empty update. Update for payments table not supported
     public static final String QUERY_UPDATE = "UPDATE payment SET "+Fields.PAY_ID+" = "+Fields.PAY_ID+"" +
             " WHERE "+Fields.PAY_ID+"= ?;";
     public static final String QUERY_DELETE = "DELETE * FROM account WHERE "+Fields.PAY_ID+" = ?;";
+    private static final String QUERY_PAYMENTS_BY_USER = QUERY_SELECT_ALL+
+            "join (select idAcc from user inner join client on(FK_Usr_idCl = idCl) " +
+            "      left join creditcard on (idCl=FK_Cc_idCl)" +
+            "      left join account on(FK_Cc_idAcc=idAcc) where idUsr = ?) as listAcc " +
+            "      on (listAcc.idAcc=accR.idAcc or listAcc.idAcc=accS.idAcc)";
+
 
     public PaymentDaoImpl(Connection connection) {
         super(connection);
@@ -37,11 +42,6 @@ public class PaymentDaoImpl extends AbstractDaoImpl{
     @Override
     public String getSaveQuery() {
         return QUERY_SAVE;
-    }
-
-    @Override
-    public String getLastInsertQuery() {
-        return QUERY_LAST_INSERT;
     }
 
     @Override
@@ -110,9 +110,6 @@ public class PaymentDaoImpl extends AbstractDaoImpl{
 
     @Override
     public List<Payment> parseResultSet(ResultSet rs) throws DaoException {
-        ClientDaoImpl clientDao = new ClientDaoImpl();
-        AccountDaoImpl accountDao = new AccountDaoImpl();
-        CreditCardDaoImpl cardDao = new CreditCardDaoImpl();
 
         Map<Number, Payment> paymentMap = new HashMap<>();
         Map<Number, Client> clientMap = new HashMap<>();
@@ -123,9 +120,10 @@ public class PaymentDaoImpl extends AbstractDaoImpl{
         try {
             while (rs.next()) {
                 paymentMap.put(rs.getInt(Fields.PAY_ID), parseResult(rs));
-                clientMap.put(rs.getInt(Fields.CL_ID), clientDao.parseResult(rs));
-                cardMap.put(rs.getInt(Fields.CARD_ID), cardDao.parseResult(rs));
-                clientMap.put(rs.getInt(Fields.CL_ID), clientDao.parseResult(rs));
+                clientMap.put(rs.getInt(Fields.CL_ID), ClientDaoImpl.parseResult(rs));
+                cardMap.put(rs.getInt(Fields.CARD_ID), CreditCardDaoImpl.parseResult(rs));
+                accountMap.put(rs.getInt(Fields.ACC_ID), AccountDaoImpl.parseResult("accS",rs));
+                accountMap.put(rs.getInt(Fields.ACC_ID), AccountDaoImpl.parseResult("accR",rs));
             }
             rs.beforeFirst();
             while (rs.next()) {
@@ -133,8 +131,10 @@ public class PaymentDaoImpl extends AbstractDaoImpl{
                         clientMap.get(rs.getInt(Fields.PAY_ID_SENDER_CLIENT)));
                 paymentMap.get(rs.getInt(Fields.PAY_ID)).setSenderCard(
                         cardMap.get(rs.getInt(Fields.PAY_ID_SENDER_CARD)));
-                paymentMap.get(rs.getInt(Fields.PAY_ID)).setSenderClient(
-                        clientMap.get(rs.getInt(Fields.PAY_ID_SENDER_CLIENT)));
+                paymentMap.get(rs.getInt(Fields.PAY_ID)).setSenderAccount(
+                        accountMap.get(rs.getInt(Fields.PAY_ID_SENDER_ACCOUNT)));
+                paymentMap.get(rs.getInt(Fields.PAY_ID)).setRecipientAccount(
+                        accountMap.get(rs.getInt(Fields.PAY_ID_RECIP_ACCOUNT)));
             }
         } catch (SQLException e) {
             throw new DaoException(getLogger(),ERR_PARSING, e);
@@ -142,16 +142,33 @@ public class PaymentDaoImpl extends AbstractDaoImpl{
         return new ArrayList<>(paymentMap.values());
     }
 
-    @Override
-    public Payment parseResult(ResultSet rs) throws DaoException {
+    public static Payment parseResult(String alias,ResultSet rs) throws DaoException {
+        alias = (alias.isEmpty())?alias:alias + ".";
         try {
-            return new Payment(rs.getInt(Fields.PAY_ID),rs.getTimestamp(Fields.PAY_TIME),rs.getBigDecimal(Fields.PAY_AMOUNT),
-                    TypeOfPayment.values()[rs.getInt(Fields.PAY_TYPE)]);
+            return new Payment(rs.getInt(alias+Fields.PAY_ID),rs.getTimestamp(alias+Fields.PAY_TIME),
+                    rs.getBigDecimal(alias+Fields.PAY_AMOUNT), TypeOfPayment.values()[rs.getInt(alias+Fields.PAY_TYPE)]);
         } catch (SQLException e) {
-            throw new DaoException(getLogger(),ERR_PARSING, e);
+            throw new DaoException(LOG,ERR_PARSING, e);
         }
     }
 
+    public static Payment parseResult(ResultSet rs) throws DaoException {
+        return parseResult("", rs);
+    }
+
+    @Override
+    public List<Payment> findPaymentsByClient(Number usrId) throws DaoException {
+        List<Payment> payments;
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(QUERY_PAYMENTS_BY_USER);
+            preparedStatement.setInt(1, (Integer) usrId);
+            payments = (List<Payment>) parseResultSet(preparedStatement.executeQuery());
+        } catch (SQLException e) {
+            throw new DaoException(getLogger(),ERR_GET_PAYMENTS_BY_USER,e);
+        }
+        return payments;
+    }
+    
     @Override
     public Logger getLogger() {
         return LOG;

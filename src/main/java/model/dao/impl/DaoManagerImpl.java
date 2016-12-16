@@ -3,11 +3,11 @@ package model.dao.impl;
 import exception.AppException;
 import model.dao.DaoCommand;
 import model.dao.GenericDao;
-import model.dao.IDaoManager;
 import model.dao.Identified;
 import model.dao.exception.DaoException;
 import model.entities.*;
 import org.apache.log4j.Logger;
+import service.exception.ServiceException;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -20,8 +20,8 @@ import java.util.Map;
  * @author kara.vladimir2@gmail.com.
  */
 
-public class DaoManager implements IDaoManager {
-    private static final Logger LOG = Logger.getLogger(DaoManager.class);
+public class DaoManagerImpl implements model.dao.DaoManager {
+    private static final Logger LOG = Logger.getLogger(DaoManagerImpl.class);
 
     public static final String NO_DAO_FOR_THIS_ENTITY = "doesn't exist dao for this entity";
     public static final String ROLLBACK_FAILED = "rollback failed";
@@ -36,7 +36,7 @@ public class DaoManager implements IDaoManager {
     private static Map<Class<? extends Identified>, Class<? extends GenericDao>>
             classHashMap = new HashMap<>();
 
-    public DaoManager(Connection connection) {
+    public DaoManagerImpl(Connection connection) {
         this.connection = connection;
         initClassMap();
     }
@@ -73,24 +73,23 @@ public class DaoManager implements IDaoManager {
     public Object transaction(DaoCommand command) throws AppException {
         try {
             this.connection.setAutoCommit(false);
-            fake();
             Object returnValue = command.execute(this);
             this.connection.commit();
             return returnValue;
-        } catch (SQLException e) {
+        } catch (ServiceException e) {
+            try {
+                this.connection.rollback();
+            } catch (SQLException e1) {
+                throw new DaoException(LOG, ROLLBACK_FAILED, e1);
+            }
+            throw new ServiceException(LOG, e.getMessage());
+        } catch (Exception e) {
             try {
                 this.connection.rollback();
             } catch (SQLException e1) {
                 throw new DaoException(LOG, ROLLBACK_FAILED, e1);
             }
             throw new DaoException(LOG, COMMIT_FAILED, e);
-        } catch (AppException e){
-            try {
-                this.connection.rollback();
-            } catch (SQLException e1) {
-                throw new DaoException(LOG, ROLLBACK_FAILED, e1);
-            }
-            throw e;
         } finally {
             try {
                 this.connection.setAutoCommit(true);
@@ -103,14 +102,8 @@ public class DaoManager implements IDaoManager {
     public void close() throws DaoException {
         try {
             connection.close();
-        } catch (SQLException e) {
+        } catch (Exception e) {
             throw new DaoException(LOG,CLOSE_CONNECTION_FAILED, e);
         }
-    }
-
-    public void fake() throws AppException {}
-
-    public enum Result {
-        SUCCESS,FAIL
     }
 }

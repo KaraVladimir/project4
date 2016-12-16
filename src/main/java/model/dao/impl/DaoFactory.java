@@ -1,7 +1,7 @@
 package model.dao.impl;
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
-import model.dao.IDaoManager;
+import model.dao.DaoManager;
 import model.dao.exception.DaoException;
 import org.apache.log4j.Logger;
 
@@ -10,10 +10,10 @@ import java.sql.SQLException;
 import java.util.ResourceBundle;
 
 /**
- * Singleton enum.INSTANCE initiates Datasource and create DaoManager
+ * Singleton enum.INSTANCE initiates Datasource and create
  * @author kara.vladimir2@gmail.com.
  */
-public enum  DaoFactory implements model.dao.IDaoFactory {
+public enum  DaoFactory implements model.dao.DaoFactory {
 
     INSTANCE;
 
@@ -21,7 +21,7 @@ public enum  DaoFactory implements model.dao.IDaoFactory {
 
     public static final String ERR_CREATE_DAO_MANAGER = "create daoManager failed";
 
-    private DataSource dataSource;
+    protected DataSource dataSource;
 
     DaoFactory() {
         ResourceBundle props = ResourceBundle.getBundle("db");
@@ -32,9 +32,10 @@ public enum  DaoFactory implements model.dao.IDaoFactory {
         this.dataSource = mysqlDataSource;
     }
 
-    public IDaoManager getDaoManager() throws DaoException {
+    public DaoManager getDaoManager() throws DaoException {
         try {
-            return new DaoManager(dataSource.getConnection());
+            DaoManager daoManager =  new DaoManagerImpl(dataSource.getConnection());
+            return daoManager;
         } catch (SQLException e) {
             throw new DaoException(LOG,ERR_CREATE_DAO_MANAGER, e);
         }

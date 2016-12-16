@@ -29,6 +29,10 @@ public class Client implements Identified<Integer> {
     }
 
     @Override
+    public void setID(Integer integer) {
+        this.id = integer;
+    }
+    @Override
     public Integer getID() {
         return id;
     }

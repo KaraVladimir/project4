@@ -4,8 +4,8 @@ import exception.AppException;
 import model.entities.Account;
 import model.entities.User;
 import org.apache.log4j.Logger;
-import service.AccountService;
-import service.UserService;
+import service.impl.AccountServiceImpl;
+import service.impl.UserServiceImpl;
 import web.config.Attrs;
 import web.config.Pages;
 import web.security.Coder;
@@ -26,11 +26,10 @@ public class LoginCommand extends AbstractCommand {
         String login = request.getParameter(Attrs.LOGIN);
         String pwd = request.getParameter(Attrs.PASSWORD);
 
-        List<Account> accounts = AccountService.INSTANCE.findBlocked();
-        request.setAttribute(Attrs.BLOCKED_ACCOUNTS,accounts);
-
         if ((request.getSession().getAttribute(Attrs.USER_ID) != null)) {
             if ((boolean) request.getSession().getAttribute(Attrs.IS_ADMIN)) {
+                List<Account> accounts = AccountServiceImpl.getInstance().findBlocked();
+                request.setAttribute(Attrs.BLOCKED_ACCOUNTS,accounts);
                 return Pages.PAGE_ADMIN_START;
             } else {
                 return Pages.PAGE_USER_START;
@@ -41,13 +40,15 @@ public class LoginCommand extends AbstractCommand {
         checkNullOrEmptyString(LOG,pwd, EMPTY_PASS);
         String password = Coder.INSTANCE.getHash(pwd);
 
-        User user = UserService.INSTANCE.login(login, password);
+        User user = UserServiceImpl.getInstance().login(login, password);
         checkNullObject(LOG,user,ERR_LOGIN);
 
         request.getSession().setAttribute(Attrs.USER_ID, user.getId());
         request.getSession().setAttribute(Attrs.CLIENT, user.getClient());
         request.getSession().setAttribute(Attrs.IS_ADMIN, user.isAdmin());
         if (user.isAdmin()) {
+            List<Account> accounts = AccountServiceImpl.getInstance().findBlocked();
+            request.setAttribute(Attrs.BLOCKED_ACCOUNTS,accounts);
             return Pages.PAGE_ADMIN_START;
         } else {
             return Pages.PAGE_USER_START;

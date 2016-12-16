@@ -22,13 +22,15 @@ public final class Pages {
     public static final String PAGE_USER_START = PAGE_USER_HOME;
 
 
+    public static final String PATH_ADM = "/page/admin";
+    public static final String PATH_USR = "/page/user";
     public static final String PATH_HOME = "/page/home";
     public static final String PATH_LOGOUT = "/page/logout";
-    public static final String PATH_UNBLOCK = "/page/unblock";
+    public static final String PATH_UNBLOCK = "/page/admin/unblock";
     public static final String PATH_FIND_ACCOUNT = "/page/findAccount";
-    public static final String PATH_REFILL = "/page/refill";
-    public static final String PATH_BLOCK = "/page/block";
-    public static final String PATH_PAY = "/page/pay";
+    public static final String PATH_REFILL = "/page/user/refill";
+    public static final String PATH_BLOCK = "/page/user/block";
+    public static final String PATH_PAY = "/page/user/pay";
 
     public static final String PATH_BTN_OK ="/img/buttonFail.png";
     public static final String PATH_BTN_FAIL ="/img/buttonSuccess.png";

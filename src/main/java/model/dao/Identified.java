@@ -8,4 +8,6 @@ import java.io.Serializable;
  */
 public interface Identified<PK extends Number> {
     PK getID();
+
+    void setID(PK pk);
 }

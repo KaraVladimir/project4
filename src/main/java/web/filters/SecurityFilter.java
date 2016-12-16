@@ -1,6 +1,7 @@
 package web.filters;
 
 import org.apache.log4j.Logger;
+import service.exception.ServiceException;
 import web.config.Attrs;
 import web.config.Pages;
 
@@ -22,15 +23,25 @@ public class SecurityFilter implements Filter{
 
     @Override
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-        LOG.trace("intercept");
         HttpServletRequest request = (HttpServletRequest) servletRequest;
         HttpServletResponse response = (HttpServletResponse) servletResponse;
-        if (request.getSession().getAttribute(Attrs.USER_ID) == null&&!request.getRequestURI().equals(Pages.PATH_HOME)) {
-            response.sendRedirect(Pages.PAGE_LOGIN);
+        Object userId = request.getSession().getAttribute(Attrs.USER_ID);
+        if (userId == null) {
+            if (!request.getRequestURI().equals(Pages.PATH_HOME)) {
+                request.getRequestDispatcher(Pages.PAGE_LOGIN).forward(request, response);
+            }
+        } else {
+            boolean isAdm = (boolean) request.getSession().getAttribute(Attrs.IS_ADMIN);
+            String uri = request.getRequestURI();
+            if (isAdm&&uri.startsWith(Pages.PATH_USR)) {
+                request.getRequestDispatcher(Pages.PAGE_ADMIN_START).forward(request, response);
+            }
+            if (!isAdm&&uri.startsWith(Pages.PATH_ADM)) {
+                request.getRequestDispatcher(Pages.PAGE_USER_START).forward(request, response);
+            }
         }
         filterChain.doFilter(servletRequest, servletResponse);
     }
-
     @Override
     public void destroy() {
 

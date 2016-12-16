@@ -1,15 +1,8 @@
 package service;
 
 import exception.AppException;
-import model.dao.DaoCommand;
-import model.dao.exception.DaoException;
-import model.dao.impl.*;
 import model.entities.Account;
-import model.entities.CreditCard;
 import model.entities.Payment;
-import model.entities.TypeOfPayment;
-import service.exception.ServiceException;
-import web.config.Msgs;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -17,142 +10,16 @@ import java.util.List;
 /**
  * @author kara.vladimir2@gmail.com.
  */
-public enum AccountService {
-    INSTANCE;
-    private static final org.apache.log4j.Logger LOG = org.apache.log4j.Logger.getLogger(UserService.class);
+public interface AccountService {
+    Account findAccountByNumber(String number) throws AppException;
 
-    public Account findAccountByNumber(String number) throws AppException {
-        Account account = null;
-        try (DaoManager daoManager = (DaoManager) DaoFactory.INSTANCE.getDaoManager()) {
-            AccountDaoImpl accountDao = (AccountDaoImpl) daoManager.getDao(Account.class);
-            account = (Account) accountDao.findByUniqueField(number);
-            checkAccountIsNull(account);
-        }
-        return account;
-    }
+    Account unblockAccountByID(Integer id) throws AppException;
 
-    public Account unblockAccountByID(Integer id) throws AppException {
-        Account account = null;
-        try (DaoManager daoManager = (DaoManager) DaoFactory.INSTANCE.getDaoManager()) {
-            account = (Account) daoManager.transaction(daoManager1 -> {
-                AccountDaoImpl accountDao = (AccountDaoImpl) daoManager1.getDao(Account.class);
-                Account account1 = (Account) accountDao.read(id);
-                checkAccountIsNull(account1);
-                checkAccountIsNotBlocked(account1);
-                account1.setBlocked(false);
-                accountDao.update(account1);
-                return account1;
-            });
+    Account block(Integer accId) throws AppException;
 
-        }
-        return account;
-    }
+    Payment pay(Integer accS_id, String number, BigDecimal amount) throws AppException;
 
+    Payment refill(Integer accS_id, BigDecimal amount) throws AppException;
 
-
-    public Account block(Integer accId) throws AppException {
-        Account account = null;
-
-        try (DaoManager daoManager = (DaoManager) DaoFactory.INSTANCE.getDaoManager()) {
-            account = (Account) daoManager.transaction(daoManager1 -> {
-                AccountDaoImpl accountDao = (AccountDaoImpl) daoManager1.getDao(Account.class);
-                Account acc = (Account) accountDao.read(accId);
-                checkAccountIsNull(acc);
-                checkAccountIsBlocked(acc);
-                acc.setBlocked(true);
-                accountDao.update(acc);
-                return null;
-            });
-        }
-        return account;
-    }
-
-
-
-    public Payment pay(Integer accS_id, String number, BigDecimal amount) throws AppException {
-        Payment payment = null;
-        try (DaoManager daoManager = (DaoManager) DaoFactory.INSTANCE.getDaoManager()) {
-            AccountDaoImpl accountDao = (AccountDaoImpl) daoManager.getDao(Account.class);
-            PaymentDaoImpl paymentDao = (PaymentDaoImpl) daoManager.getDao(Payment.class);
-            CreditCardDaoImpl creditCardDao = (CreditCardDaoImpl) daoManager.getDao(CreditCard.class);
-
-            payment = (Payment) daoManager.transaction(daoManager1 -> {
-                Payment payment1 = null;
-                Account accountSender = (Account) accountDao.read(accS_id);
-
-                Account accountRecipient = (Account) accountDao.findByUniqueField(number);
-                checkAccountIsNull(accountSender);
-                checkAccountIsNull(accountRecipient);
-                checkBalance(amount, accountSender);
-                checkAccountIsBlocked(accountSender);
-                CreditCard creditCardSender = (CreditCard) creditCardDao.
-                        findCreditCardByAccount(accountSender);
-                accountSender.deductBalance(amount);
-                accountDao.update(accountSender);
-                accountRecipient.addBalance(amount);
-                accountDao.update(accountRecipient);
-                payment1 = new Payment(amount, TypeOfPayment.PAYMENT,creditCardSender.getClient(),
-                        accountSender, creditCardSender, accountRecipient);
-                payment1 = (Payment) paymentDao.save(payment1);
-                return payment1;
-            });
-        }
-        return payment;
-    }
-
-
-    public Payment refill(Integer accS_id, BigDecimal amount) throws AppException {
-        Payment payment = null;
-        try (DaoManager daoManager = (DaoManager) DaoFactory.INSTANCE.getDaoManager()){
-            AccountDaoImpl accountDao = (AccountDaoImpl) daoManager.getDao(Account.class);
-            PaymentDaoImpl paymentDao = (PaymentDaoImpl) daoManager.getDao(Payment.class);
-
-            payment = (Payment) daoManager.transaction(daoManager1 -> {
-                Payment payment1 = null;
-                Account account = (Account) accountDao.read(accS_id);
-                payment1 = new Payment(amount, TypeOfPayment.REFILL,null,
-                        null, null, account);
-                account.addBalance(amount);
-                accountDao.update(account);
-                payment1 = (Payment) paymentDao.save(payment1);
-                return payment1;
-            });
-
-        }
-        return payment;
-    }
-
-    public List<Account> findBlocked() throws AppException {
-        List<Account> accounts = null;
-        try (DaoManager daoManager = (DaoManager) DaoFactory.INSTANCE.getDaoManager()){
-            AccountDaoImpl accountDao = (AccountDaoImpl) daoManager.getDao(Account.class);
-            accounts = accountDao.findBlockedAccounts();
-        }
-        return accounts;
-    }
-
-    private void checkAccountIsNull(Account account1) throws ServiceException {
-        if (account1 == null) {
-            throw new ServiceException(LOG, Msgs.ACCOUNT_NULL);
-        }
-    }
-
-    private void checkAccountIsNotBlocked(Account account1) throws ServiceException {
-        if (!account1.isBlocked()) {
-            throw new ServiceException(LOG, Msgs.ACCOUNT_NOT_BLOCKED);
-        }
-    }
-
-    private void checkAccountIsBlocked(Account acc) throws ServiceException {
-        if (acc.isBlocked()) {
-            throw new ServiceException(LOG, Msgs.ACCOUNT_IS_BLOCKED);
-        }
-    }
-
-    private void checkBalance(BigDecimal amount, Account accountSender) throws ServiceException {
-        if (accountSender.getAccountBalance().compareTo(amount) < 0) {
-            throw new ServiceException(LOG, Msgs.NOT_ENOUGH_MONEY);
-        }
-    }
-
+    List<Account> findBlocked() throws AppException;
 }

@@ -25,7 +25,11 @@ public class Account implements Identified<Integer>{
         this.id = id;
     }
 
-
+    @Override
+    public void setID(Integer integer) {
+        this.id = integer;
+    }
+    @Override
     public Integer getID() {
         return id;
     }

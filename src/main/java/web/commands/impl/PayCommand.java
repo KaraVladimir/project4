@@ -1,14 +1,11 @@
 package web.commands.impl;
 
 import exception.AppException;
-import model.dao.exception.DaoException;
 import model.entities.Account;
-import model.entities.Client;
 import model.entities.Payment;
 import org.apache.log4j.Logger;
-import org.w3c.dom.Attr;
-import service.AccountService;
-import service.UserService;
+import service.impl.AccountServiceImpl;
+import service.impl.UserServiceImpl;
 import web.config.Attrs;
 import web.config.Msgs;
 import web.config.Pages;
@@ -28,7 +25,7 @@ public class PayCommand extends AbstractCommand {
     public String proceedExecute(HttpServletRequest request, HttpServletResponse httpServletResponse) throws AppException {
 
         Integer userId = (Integer) request.getSession().getAttribute(Attrs.USER_ID);
-        List<Account> accounts = UserService.INSTANCE.findUserAccounts(userId);
+        List<Account> accounts = UserServiceImpl.getInstance().findUserAccounts(userId);
         request.setAttribute(Attrs.AVAILABLE_ACCOUNTS, accounts);
         if (request.getParameter(Attrs.EXECUTE)==null||request.getParameter(Attrs.EXECUTE).equals("n")) {
             return Pages.PAGE_USER_PAY;
@@ -38,14 +35,14 @@ public class PayCommand extends AbstractCommand {
         String number = request.getParameter(Attrs.ACC_NUMBER);
         checkNullOrEmptyString(LOG, number, INCORRECT_ACCOUNT_NUMBER);
 
-        Account accountDest = AccountService.INSTANCE.findAccountByNumber(number);
+        Account accountDest = AccountServiceImpl.getInstance().findAccountByNumber(number);
         checkNullObject(LOG,accountDest, ACCOUNT_NOT_EXIST);
 
-        Payment payment = AccountService.INSTANCE.pay(accS_ID,number, amount);
+        Payment payment = AccountServiceImpl.getInstance().pay(accS_ID,number, amount);
         if (payment != null) {
             request.setAttribute(Attrs.MSG, Msgs.SUCCESS);
         }
-        accounts = UserService.INSTANCE.findUserAccounts(userId);
+        accounts = UserServiceImpl.getInstance().findUserAccounts(userId);
         request.setAttribute(Attrs.AVAILABLE_ACCOUNTS, accounts);
 
         return Pages.PAGE_USER_PAY;

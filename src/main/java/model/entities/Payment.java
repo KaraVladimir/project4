@@ -43,6 +43,15 @@ public class Payment implements Identified<Integer>{
         this.typeOfPayment = typeOfPayment;
     }
 
+    @Override
+    public void setID(Integer integer) {
+        this.id = integer;
+    }
+    @Override
+    public Integer getID() {
+        return id;
+    }
+
     public Timestamp getTimestamp() {
         return timestamp;
     }
@@ -69,10 +78,6 @@ public class Payment implements Identified<Integer>{
 
     public Account getRecipientAccount() {
         return recipientAccount;
-    }
-
-    public Integer getID() {
-        return id;
     }
 
     public void setSenderClient(Client senderClient) {

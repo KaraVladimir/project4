@@ -1,6 +1,6 @@
 package model.dao.impl;
 
-import model.dao.HaveUniqueField;
+import model.dao.AccountDao;
 import model.dao.Identified;
 import model.dao.exception.DaoException;
 import model.entities.Account;
@@ -17,14 +17,14 @@ import java.util.List;
  * Dao object for {@link Account}
  * @author kara.vladimir2@gmail.com.
  */
-public class AccountDaoImpl extends AbstractDaoImpl implements HaveUniqueField {
+public class AccountDaoImpl extends AbstractDaoImpl implements AccountDao {
     private static final Logger LOG = Logger.getLogger(AccountDaoImpl.class);
 
     public static final String QUERY_SAVE = "INSERT INTO account("+ Fields.ACC_NUMBER+
             ","+Fields.ACC_BALANCE+","+Fields.ACC_IS_BLOCKED+")" + " VALUES(?,?,?);";
     public static final String QUERY_SELECT_ALL = "SELECT * FROM account ";
-    public static final String QUERY_LAST_INSERT = QUERY_SELECT_ALL+"WHERE "+ Fields.ACC_ID+" = last_insert_id();";
     public static final String QUERY_FIND_BY_PK = QUERY_SELECT_ALL+"WHERE "+Fields.ACC_ID+" = ?;";
+    public static final String QUERY_FIND_BY_PK_FOR_UPDATE = QUERY_SELECT_ALL+"WHERE "+Fields.ACC_ID+" = ? FOR UPDATE;";
     public static final String QUERY_FIND_BY_NUMBER = QUERY_SELECT_ALL+"WHERE "+Fields.ACC_NUMBER+" = ?;";
     public static final String QUERY_FIND_BLOCKED = QUERY_SELECT_ALL+"WHERE "+Fields.ACC_IS_BLOCKED+" = true;";
     public static final String QUERY_UPDATE = "UPDATE account SET " +Fields.ACC_NUMBER+"= ?, "
@@ -32,7 +32,6 @@ public class AccountDaoImpl extends AbstractDaoImpl implements HaveUniqueField {
     public static final String QUERY_DELETE = "DELETE * FROM account WHERE "+Fields.ACC_ID+" = ?;";
 
 
-    public AccountDaoImpl() {}
 
     public AccountDaoImpl(Connection connection) {
         super(connection);
@@ -41,11 +40,6 @@ public class AccountDaoImpl extends AbstractDaoImpl implements HaveUniqueField {
     @Override
     public String getSaveQuery() {
         return QUERY_SAVE;
-    }
-
-    @Override
-    public String getLastInsertQuery() {
-        return QUERY_LAST_INSERT;
     }
 
     @Override
@@ -98,28 +92,11 @@ public class AccountDaoImpl extends AbstractDaoImpl implements HaveUniqueField {
     }
 
     @Override
-    public String getQueryFindByUniqueField() {
-        return QUERY_FIND_BY_NUMBER;
-    }
-
-    @Override
-    public Connection getConnection() {
-        return connection;
-    }
-
-    @Override
-    public List<Identified> parseResultSetGen(ResultSet resultSet) throws DaoException {
-        List<Identified> accounts = (List<Identified>) parseResultSet(resultSet);
-        return accounts;
-
-    }
-
-    @Override
     public List<? super Account> parseResultSet(ResultSet rs) throws DaoException {
         List<Account> listResult = new ArrayList<>();
         try {
             while (rs.next()) {
-                listResult.add(parseResult(rs));
+                listResult.add(AccountDaoImpl.parseResult(rs));
             }
         } catch (SQLException e) {
             throw new DaoException(getLogger(),ERR_PARSING, e);
@@ -127,16 +104,20 @@ public class AccountDaoImpl extends AbstractDaoImpl implements HaveUniqueField {
         return listResult;
     }
 
-    @Override
-    public Account parseResult(ResultSet rs) throws DaoException {
+    public static Account parseResult(String alias,ResultSet rs) throws DaoException {
+        alias = (alias.isEmpty())?alias:alias + ".";
         try {
-            return new Account(rs.getInt(Fields.ACC_ID),rs.getString(Fields.ACC_NUMBER),
-                    rs.getBigDecimal(Fields.ACC_BALANCE),rs.getBoolean(Fields.ACC_IS_BLOCKED));
+            return new Account(rs.getInt(alias+Fields.ACC_ID),rs.getString(alias+Fields.ACC_NUMBER),
+                    rs.getBigDecimal(alias+Fields.ACC_BALANCE),rs.getBoolean(alias+Fields.ACC_IS_BLOCKED));
         } catch (SQLException e) {
-            throw new DaoException(getLogger(),ERR_PARSING, e);
+            throw new DaoException(LOG,ERR_PARSING, e);
         }
     }
+    public static Account parseResult(ResultSet rs) throws DaoException {
+        return parseResult("", rs);
+    }
 
+    @Override
     public List<Account> findBlockedAccounts() throws DaoException {
         List<Account> accounts;
         try {
@@ -146,6 +127,36 @@ public class AccountDaoImpl extends AbstractDaoImpl implements HaveUniqueField {
             throw new DaoException(getLogger(),ERR_GET_BLOCKED_QUERY,e);
         }
         return accounts;
+    }
+
+    @Override
+    public Account findAccountByNumber(String number) throws DaoException {
+        Account account = null;
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(QUERY_FIND_BY_NUMBER);
+            preparedStatement.setString(1,number);
+            account = ((List<Account>)parseResultSet(preparedStatement.executeQuery())).get(0);
+
+        } catch (SQLException e) {
+            throw new DaoException(getLogger(), ERR_FIND_BY_NUMBER,e);
+        }
+        return account;
+    }
+
+    @Override
+    public Account findByPKForUpdate(Number prKey) throws DaoException {
+        List<Account> tList;
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(QUERY_FIND_BY_PK_FOR_UPDATE);
+            preparedStatement.setInt(1, (Integer) prKey);
+            tList = (List<Account>) parseResultSet(preparedStatement.executeQuery());
+        } catch (SQLException e) {
+            throw new DaoException(getLogger(),ERR_GET_BY_PK_QUERY,e);
+        }
+        if (tList == null || tList.size() == 0||tList.size()>1) {
+            throw new DaoException(getLogger(),ERR_GET_BY_PK_QUERY);
+        }
+        return tList.get(0);
     }
 
     @Override

@@ -1,10 +1,9 @@
 package web.controller;
 
-import model.dao.exception.DaoException;
 import org.apache.log4j.Logger;
-import web.config.Pages;
 import web.commands.Command;
 import web.commands.CommandKeeper;
+import web.commands.impl.CommandKeeperImpl;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -18,6 +17,13 @@ import java.io.IOException;
  */
 public class MainController extends HttpServlet {
     private static final Logger LOG = Logger.getLogger(MainController.class);
+    CommandKeeper commandKeeper;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        commandKeeper = new CommandKeeperImpl();
+    }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -29,10 +35,10 @@ public class MainController extends HttpServlet {
         process(req, resp);
     }
 
-    private void process(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void process(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         LOG.trace(request.getRequestURI());
         String forwardPage = null;
-        Command command = CommandKeeper.INSTANCE.get(request.getRequestURI());
+        Command command = commandKeeper.get(request.getRequestURI());
         forwardPage = command.execute(request, response);
         if (forwardPage != null) {
             LOG.trace(command);
@@ -40,6 +46,6 @@ public class MainController extends HttpServlet {
         } else {
             response.sendRedirect(request.getContextPath());
         }
-
     }
+
 }
