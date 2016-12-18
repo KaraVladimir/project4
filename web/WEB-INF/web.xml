@@ -10,7 +10,7 @@
     </session-config>
     <servlet>
         <servlet-name>controller</servlet-name>
-        <servlet-class>web.controller.MainController</servlet-class>
+        <servlet-class>payments.controller.controller.MainController</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>controller</servlet-name>
@@ -19,7 +19,7 @@
 
     <filter>
         <filter-name>encFilter</filter-name>
-        <filter-class>web.filters.EncodingFilter</filter-class>
+        <filter-class>payments.controller.filters.EncodingFilter</filter-class>
         <init-param>
             <param-name>encoding</param-name>
             <param-value>UTF-8</param-value>
@@ -31,7 +31,7 @@
     </filter-mapping>
     <filter>
         <filter-name>secFilter</filter-name>
-        <filter-class>web.filters.SecurityFilter</filter-class>
+        <filter-class>payments.controller.filters.SecurityFilter</filter-class>
     </filter>
     <filter-mapping>
         <filter-name>secFilter</filter-name>
@@ -40,7 +40,7 @@
     
     
     <listener>
-        <listener-class>web.listener.ServletListener</listener-class>
+        <listener-class>payments.controller.listener.ServletListener</listener-class>
     </listener>
 
     <welcome-file-list>

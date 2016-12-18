@@ -6,7 +6,6 @@
 <%@include file="/WEB-INF/view/parts/header.jsp" %>
 <div id="content">
     <form action="${Pages.PATH_PAY}" method="post">
-        <%--<input type="hidden" name="${Attrs.REF}" value="${Pages.PATH_PAY}">--%>
         <div class="content-bigcontainer">
             <div>
                 <fmt:message key="your.accounts"/>
@@ -25,7 +24,7 @@
                    oninvalid="setCustomValidity('<fmt:message key="${Msgs.ACCOUNT_FORMAT_ERROR}"/>')"
                    onchange="try{setCustomValidity('')}catch(e){}"/><br/>
             <fmt:message key="payment.amount"/>
-            <input name="${Attrs.ACC_AMOUNT}" class="form-field" pattern="[0-9]+([.,][0-9][0-9]?)?" required
+            <input type="text" name="${Attrs.ACC_AMOUNT}" class="form-field" pattern="[0-9]+([.][0-9][0-9]?)?" required
                    oninvalid="setCustomValidity('<fmt:message key="${Msgs.AMOUNT_FORMAT_ERROR}"/>')"
                    onchange="try{setCustomValidity('')}catch(e){}"/>
             <br/>

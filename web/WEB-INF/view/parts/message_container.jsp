@@ -1,7 +1,7 @@
 <%@include file="/WEB-INF/view/parts/page.jsp" %>
-<%@ page import="web.config.Attrs" %>
-<%@ page import="web.config.Pages" %>
-<%@ page import="web.config.Msgs" %>
+<%@ page import="payments.config.Attrs" %>
+<%@ page import="payments.config.Pages" %>
+<%@ page import="payments.config.Msgs" %>
 
 <c:if test="${not empty requestScope[Attrs.MSG] }">
     <div class="message-container">

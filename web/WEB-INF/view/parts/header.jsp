@@ -1,7 +1,7 @@
 <%@include file="/WEB-INF/view/parts/page.jsp" %>
-<%@ page import="web.config.Attrs" %>
-<%@ page import="web.config.Pages" %>
-<%@ page import="web.config.Msgs" %>
+<%@ page import="payments.config.Attrs" %>
+<%@ page import="payments.config.Pages" %>
+<%@ page import="payments.config.Msgs" %>
 
 
 <div id="header-top">
@@ -12,7 +12,15 @@
             <%--<option value="uk" ${language eq 'uk' ? 'selected' : ''}>UA</option>--%>
         <%--</select>--%>
         <c:if test="${not empty sessionScope[Attrs.USER_ID]}">
-
+            <c:choose>
+                <c:when test="${sessionScope[Attrs.IS_ADMIN]}">
+                    <fmt:message key="header.role.admin"/>
+                </c:when>
+                <c:otherwise>
+                    <fmt:message key="header.role.user"/>
+                </c:otherwise>
+            </c:choose>
+            &nbsp;&nbsp;
             <a href="${Pages.PATH_LOGOUT}" >
                 <fmt:message key="header.logout"></fmt:message></a>
         </c:if>
@@ -29,14 +37,14 @@
     <%--</form>--%>
 </div>
 <div id="header">
-    <c:if test="${not empty sessionScope[Attrs.USER_ID]&&pageScope[Attrs.T]!='Login'}">
+    <c:if test="${not empty sessionScope[Attrs.USER_ID]}">
         <div class="header-button">
             <c:choose>
-                <c:when test="${sessionScope[Attrs.IS_ADMIN]&&pageScope[Attrs.T]!='Login'}">
+                <c:when test="${sessionScope[Attrs.IS_ADMIN]}">
                     <a href="${Pages.PATH_UNBLOCK}" class="submit-button">
                         <fmt:message key="header.unblock.button"></fmt:message></a>
                 </c:when>
-                <c:when test="${!sessionScope[Attrs.IS_ADMIN]&&pageScope[Attrs.T]!='Login'}">
+                <c:when test="${!sessionScope[Attrs.IS_ADMIN]}">
                     <a href="${Pages.PATH_PAY}" class="submit-button">
                         <fmt:message key="header.pay.button"></fmt:message></a>
                     <a href="${Pages.PATH_REFILL}" class="submit-button">

@@ -30,7 +30,7 @@ body {
 #header {
     position: relative;
     box-sizing: border-box;
-    background:#9393FF;
+    background: #c9c798;
     height:70px;
     width:100%;
 }
@@ -86,6 +86,12 @@ body {
     margin-top: 5px;
 }
 
+.container-header {
+    box-sizing: border-box;
+    text-align: center;
+    font-size: large;
+}
+
 .message-container {
     box-sizing: border-box;
     color: blue;
@@ -134,12 +140,12 @@ body {
 }
 .submit-button:hover {
     border: 1px solid #fa9709;
-    background: rgba(250, 111, 50, 0.8);
+    background: #FA6F32;
     color: #fff;
 }
 .submit-button:active {
     border: 1px solid #fa9709;
-    background: rgba(250, 151, 9, 0.8);
+    background: #FA6F32;
     color: #fff;
 }
 
@@ -161,6 +167,5 @@ th,td {
 }
 
 .table-button {
-    width: 20px;
-    height: 20px;
+
 }

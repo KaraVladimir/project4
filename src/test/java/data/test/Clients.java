@@ -1,6 +1,6 @@
 package data.test;
 
-import model.entities.Client;
+import payments.model.entities.Client;
 
 /**
  * @author kara.vladimir2@gmail.com.

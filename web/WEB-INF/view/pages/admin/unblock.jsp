@@ -21,19 +21,16 @@
                         <td><fmt:message key="table.acc.id"/></td>
                         <td><fmt:message key="table.acc.number"/></td>
                         <td><fmt:message key="table.acc.balance"/></td>
-                        <td><fmt:message key="table.acc.status"/></td>
-                        <%--<td><fmt:message key="table.acc.status"/></td>--%>
+                        <td><fmt:message key="table.acc.action"/></td>
                     </tr>
                     <c:forEach items="${requestScope[Attrs.BLOCKED_ACCOUNTS]}" var="account">
                         <tr>
                             <td><c:out value="${account.getID()}"/></td>
                             <td><c:out value="${account.getAccountNumber()}"/></td>
                             <td><c:out value="${account.getAccountBalance()}"/></td>
-                            <%--<td><fmt:message key="table.acc.blocked"/> </td>--%>
                             <td>
-                                <button name="${Attrs.ACCOUNT_ID}" value="${account.getID()}">
-                                    <img src="${!account.isBlocked()?Pages.PATH_BTN_FAIL:Pages.PATH_BTN_OK}"
-                                         style="height: 20px;width: 20px"></button>
+                                <button name="${Attrs.ACCOUNT_ID}" value="${account.getID()}" class="table-button">
+                                    <fmt:message key="table.acc.button.unblock"/> </button>
                         </tr>
                     </c:forEach>
                 </table>

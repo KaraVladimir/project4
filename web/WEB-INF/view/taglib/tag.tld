@@ -10,7 +10,7 @@
     <uri>myTag</uri>
     <tag>
         <name>myTable</name>
-        <tag-class>web.tag.TableTag</tag-class>
+        <tag-class>payments.view.tag.TableTag</tag-class>
         <body-content>scriptless</body-content>
         <attribute>
             <name>accounts</name>
