@@ -37,8 +37,8 @@
         <filter-name>secFilter</filter-name>
         <url-pattern>/page/*</url-pattern>
     </filter-mapping>
-    
-    
+
+
     <listener>
         <listener-class>payments.controller.listener.ServletListener</listener-class>
     </listener>

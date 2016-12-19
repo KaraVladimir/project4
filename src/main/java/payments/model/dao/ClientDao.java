@@ -5,8 +5,9 @@ import payments.model.entities.Client;
 
 /**
  * interface for dao object {@link Client}
+ *
  * @author kara.vladimir2@gmail.com.
  */
-public interface ClientDao extends GenericDao{
+public interface ClientDao extends GenericDao {
     Client findClientByEmail(String email) throws DaoException;
 }

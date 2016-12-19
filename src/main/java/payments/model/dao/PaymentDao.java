@@ -7,8 +7,9 @@ import java.util.List;
 
 /**
  * interface for dao object {@link Payment}
+ *
  * @author kara.vladimir2@gmail.com.
  */
-public interface PaymentDao extends GenericDao{
+public interface PaymentDao extends GenericDao {
     List<Payment> findPaymentsByClient(Number usrId) throws DaoException;
 }

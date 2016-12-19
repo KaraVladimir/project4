@@ -1,5 +1,6 @@
 package payments.model.dao.impl;
 
+import payments.helper.Msgs;
 import payments.model.dao.CreditCardDao;
 import payments.model.dao.Identified;
 import payments.model.dao.exception.DaoException;
@@ -17,25 +18,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static payments.model.dao.impl.Fields.*;
+
 /**
  * Dao object for {@link CreditCard}
+ *
  * @author kara.vladimir2@gmail.com.
  */
 public class CreditCardDaoImpl extends AbstractDaoImpl implements CreditCardDao {
     private static final Logger LOG = Logger.getLogger(CreditCardDaoImpl.class);
 
-    public static final String QUERY_SAVE = "INSERT INTO creditCard("+Fields.CARD_NUMBER+
-            ","+Fields.CARD_ID_CLIENT+","+Fields.CARD_ID_ACCOUNT+")" + " VALUES(?,?,?);";
-    public static final String QUERY_SELECT_ALL = "SELECT * FROM creditCard " +
-            "LEFT JOIN client ON("+Fields.CARD_ID_CLIENT+"="+Fields.CL_ID+")" +
-            "LEFT JOIN account ON("+Fields.CARD_ID_ACCOUNT+"="+Fields.ACC_ID+")";
-    public static final String QUERY_FIND_BY_PK = QUERY_SELECT_ALL+"WHERE "+Fields.CARD_ID+" = ?;";
-    public static final String QUERY_FIND_BY_NUMBER = QUERY_SELECT_ALL+"WHERE "+Fields.CARD_NUMBER+" = ?;";
-    public static final String QUERY_FIND_BY_ACCOUNT = QUERY_SELECT_ALL + "WHERE "
-            + Fields.CARD_ID_ACCOUNT + " = ?";
-    public static final String QUERY_UPDATE = "UPDATE creditCard SET "+Fields.CARD_NUMBER+"= ?, "
-            +Fields.CARD_ID_CLIENT+" = ?, "+Fields.CARD_ID_ACCOUNT+" = ? WHERE "+Fields.CARD_ID+"= ?;";
-    public static final String QUERY_DELETE = "DELETE * FROM creditCard WHERE "+Fields.CARD_ID+" = ?;";
+    private static final String QUERY_SAVE = "INSERT INTO creditCard(" + CARD_NUMBER +
+            "," + CARD_ID_CLIENT + "," + CARD_ID_ACCOUNT + ")" + " VALUES(?,?,?);";
+    private static final String QUERY_SELECT_ALL = "SELECT * FROM creditCard " +
+            "LEFT JOIN client ON(" + CARD_ID_CLIENT + "=" + CL_ID + ")" +
+            "LEFT JOIN account ON(" + CARD_ID_ACCOUNT + "=" + ACC_ID + ")";
+    private static final String QUERY_FIND_BY_PK = QUERY_SELECT_ALL + "WHERE " + CARD_ID + " = ?;";
+    public static final String QUERY_FIND_BY_NUMBER = QUERY_SELECT_ALL + "WHERE " + CARD_NUMBER + " = ?;";
+    private static final String QUERY_FIND_BY_ACCOUNT = QUERY_SELECT_ALL + "WHERE "
+            + CARD_ID_ACCOUNT + " = ?";
+    private static final String QUERY_UPDATE = "UPDATE creditCard SET " + CARD_NUMBER + "= ?, "
+            + CARD_ID_CLIENT + " = ?, " + CARD_ID_ACCOUNT + " = ? WHERE " + CARD_ID + "= ?;";
+    private static final String QUERY_DELETE = "DELETE * FROM creditCard WHERE " + CARD_ID + " = ?;";
 
     public CreditCardDaoImpl(Connection connection) {
         super(connection);
@@ -68,16 +72,16 @@ public class CreditCardDaoImpl extends AbstractDaoImpl implements CreditCardDao 
 
     @Override
     public PreparedStatement prepareStatementForUpdate(PreparedStatement preparedStatement, Identified identified) throws DaoException {
-            CreditCard card = (CreditCard) identified;
-            try {
-                preparedStatement.setString(1, card.getCardNumber());
-                preparedStatement.setInt(2, card.getClient().getID());
-                preparedStatement.setInt(3, card.getAccount().getID());
-                preparedStatement.setInt(4,card.getID());
-            } catch (SQLException e) {
-                throw new DaoException(getLogger(),ERR_UPDATE,e);
-            }
-            return preparedStatement;
+        CreditCard card = (CreditCard) identified;
+        try {
+            preparedStatement.setString(1, card.getCardNumber());
+            preparedStatement.setInt(2, card.getClient().getID());
+            preparedStatement.setInt(3, card.getAccount().getID());
+            preparedStatement.setInt(4, card.getID());
+        } catch (SQLException e) {
+            throw new DaoException(getLogger(), Msgs.ERR_UPDATE, e);
+        }
+        return preparedStatement;
     }
 
     @Override
@@ -88,13 +92,13 @@ public class CreditCardDaoImpl extends AbstractDaoImpl implements CreditCardDao 
             preparedStatement.setInt(2, card.getClient().getID());
             preparedStatement.setInt(3, card.getAccount().getID());
         } catch (SQLException e) {
-            throw new DaoException(getLogger(),ERR_SAVE,e);
+            throw new DaoException(getLogger(), Msgs.ERR_SAVE_QUERY, e);
         }
         return preparedStatement;
     }
 
     @Override
-    public List<? super CreditCard> parseResultSet(ResultSet rs) throws DaoException {
+    protected List<CreditCard> parseResultSet(ResultSet rs) throws DaoException {
 
         Map<Number, CreditCard> cardMap = new HashMap<>();
         Map<Number, Client> clientMap = new HashMap<>();
@@ -102,29 +106,29 @@ public class CreditCardDaoImpl extends AbstractDaoImpl implements CreditCardDao 
 
         try {
             while (rs.next()) {
-                cardMap.put(rs.getInt(Fields.CARD_ID), parseResult(rs));
-                clientMap.put(rs.getInt(Fields.CL_ID), ClientDaoImpl.parseResult(rs));
-                accountMap.put(rs.getInt(Fields.ACC_ID), AccountDaoImpl.parseResult(rs));
+                cardMap.put(rs.getInt(CARD_ID), parseResult(rs));
+                clientMap.put(rs.getInt(CL_ID), ClientDaoImpl.parseResult(rs));
+                accountMap.put(rs.getInt(ACC_ID), AccountDaoImpl.parseResult(rs));
             }
             rs.beforeFirst();
             while (rs.next()) {
-                cardMap.get(rs.getInt(Fields.CARD_ID)).setClient(
-                        clientMap.get(rs.getInt(Fields.CARD_ID_CLIENT)));
-                cardMap.get(rs.getInt(Fields.CARD_ID)).setAccount(
-                        accountMap.get(rs.getInt(Fields.CARD_ID_ACCOUNT)));
+                cardMap.get(rs.getInt(CARD_ID)).setClient(
+                        clientMap.get(rs.getInt(CARD_ID_CLIENT)));
+                cardMap.get(rs.getInt(CARD_ID)).setAccount(
+                        accountMap.get(rs.getInt(CARD_ID_ACCOUNT)));
             }
         } catch (SQLException e) {
-            throw new DaoException(getLogger(),ERR_PARSING, e);
+            throw new DaoException(getLogger(), Msgs.ERR_PARSING, e);
         }
         return new ArrayList<>(cardMap.values());
     }
 
-    public static CreditCard parseResult(String alias,ResultSet rs) throws DaoException {
-        alias = (alias.isEmpty())?alias:alias + ".";
+    private static CreditCard parseResult(String alias, ResultSet rs) throws DaoException {
+        alias = (alias.isEmpty()) ? alias : alias + ".";
         try {
-            return new CreditCard(rs.getInt(alias+Fields.CARD_ID),rs.getString(alias+Fields.CARD_NUMBER));
+            return new CreditCard(rs.getInt(alias + CARD_ID), rs.getString(alias + CARD_NUMBER));
         } catch (SQLException e) {
-            throw new DaoException(LOG,ERR_PARSING, e);
+            throw new DaoException(LOG, Msgs.ERR_PARSING, e);
         }
     }
 
@@ -135,20 +139,20 @@ public class CreditCardDaoImpl extends AbstractDaoImpl implements CreditCardDao 
     @Override
     public CreditCard findCreditCardByAccount(Account account) throws DaoException {
         List<CreditCard> cardList;
-        try (PreparedStatement preparedStatement = connection.prepareStatement(QUERY_FIND_BY_ACCOUNT)){
+        try (PreparedStatement preparedStatement = connection.prepareStatement(QUERY_FIND_BY_ACCOUNT)) {
             preparedStatement.setInt(1, account.getID());
             cardList = (List<CreditCard>) parseResultSet(preparedStatement.executeQuery());
         } catch (SQLException e) {
-            throw new DaoException(getLogger(),ERR_GET_BY_ACCOUNT_QUERY,e);
+            throw new DaoException(getLogger(), Msgs.ERR_GET_BY_ACCOUNT_QUERY, e);
         }
-        if (cardList == null || cardList.size() == 0||cardList.size()>1) {
-            throw new DaoException(getLogger(),ERR_GET_BY_ACCOUNT_QUERY);
+        if (cardList == null || cardList.size() == 0 || cardList.size() > 1) {
+            throw new DaoException(getLogger(), Msgs.ERR_GET_BY_ACCOUNT_QUERY);
         }
         return cardList.get(0);
     }
 
     @Override
-    public Logger getLogger() {
+    protected Logger getLogger() {
         return LOG;
     }
 }

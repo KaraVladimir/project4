@@ -5,8 +5,9 @@ import payments.model.entities.User;
 
 /**
  * interface for dao object {@link User}
+ *
  * @author kara.vladimir2@gmail.com.
  */
-public interface UserDao extends GenericDao{
+public interface UserDao extends GenericDao {
     User findUserByLogin(String login) throws DaoException;
 }

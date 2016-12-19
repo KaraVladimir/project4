@@ -27,10 +27,8 @@
             </div>
         </c:otherwise>
     </c:choose>
-
     <%@include file="/WEB-INF/view/parts/message_container.jsp" %>
 </div>
 
-<%--TODO footer in all jsp--%>
 </body>
 </html>

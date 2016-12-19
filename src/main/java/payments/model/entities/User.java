@@ -11,7 +11,6 @@ public class User implements Identified<Integer> {
     private String password;
     private boolean isAdmin;
     private Client client;
-//    private Number clientId;
 
     public User(String login, String password, boolean isAdmin) {
         this.login = login;
@@ -30,12 +29,9 @@ public class User implements Identified<Integer> {
     public void setID(Integer integer) {
         this.id = integer;
     }
+
     @Override
     public Integer getID() {
-        return id;
-    }
-
-    public Integer getId() {
         return id;
     }
 

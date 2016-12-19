@@ -1,19 +1,20 @@
 package payments.controller.commands.impl;
 
 import payments.controller.commands.Command;
-import payments.config.Pages;
+import payments.helper.Pages;
 
 import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Class keeps {@link Map<String, Command >}
+ * Class takes URI and give command
+ *
  * @author kara.vladimir2@gmail.com.
  */
 public class CommandKeeperImpl implements payments.controller.commands.CommandKeeper {
     private final Map<String, Command> commands = mapInit();
 
-    private final Map<String,Command> mapInit() {
+    private Map<String, Command> mapInit() {
         Map<String, Command> map = new TreeMap<>();
         map.put(Pages.PATH_HOME, new LoginCommand());
         map.put(Pages.PATH_LOGOUT, new LogoutCommand());
@@ -28,8 +29,7 @@ public class CommandKeeperImpl implements payments.controller.commands.CommandKe
     /**
      * Returns command object with the given name.
      *
-     * @param commandName
-     *            Name of the command.
+     * @param commandName Name of the command.
      * @return Command object.
      */
     @Override

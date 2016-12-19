@@ -1,6 +1,7 @@
 package payments.model.dao.impl;
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+import payments.helper.Msgs;
 import payments.model.dao.DaoFactory;
 import payments.model.dao.DaoManager;
 import payments.model.dao.exception.DaoException;
@@ -12,16 +13,15 @@ import java.util.ResourceBundle;
 
 /**
  * Initiates Datasource and create {@link DaoManager}
+ *
  * @author kara.vladimir2@gmail.com.
  */
 public class DaoFactoryImpl implements payments.model.dao.DaoFactory {
     private static final Logger LOG = Logger.getLogger(DaoFactoryImpl.class);
 
-    public static final String ERR_CREATE_DAO_MANAGER = "create daoManager failed";
+    private final DataSource dataSource = initDataSource();
 
-    private final DataSource dataSource = JDBCPoolInitializer.getInstance();
-
-    DaoFactoryImpl() {
+    private DaoFactoryImpl() {
     }
 
     private static class InstanceHolder {
@@ -34,12 +34,20 @@ public class DaoFactoryImpl implements payments.model.dao.DaoFactory {
 
     public DaoManager getDaoManager() throws DaoException {
         try {
-            DaoManager daoManager =  new DaoManagerImpl(dataSource.getConnection());
+            DaoManager daoManager = new DaoManagerImpl(dataSource.getConnection());
             return daoManager;
         } catch (SQLException e) {
-            throw new DaoException(LOG,ERR_CREATE_DAO_MANAGER, e);
+            throw new DaoException(LOG, Msgs.ERR_CREATE_DAO_MANAGER, e);
         }
     }
 
+    private static DataSource initDataSource() {
+        ResourceBundle props = ResourceBundle.getBundle("db");
+        MysqlDataSource mysqlDataSource = new MysqlDataSource();
+        mysqlDataSource.setURL(props.getString("db.url"));
+        mysqlDataSource.setUser(props.getString("db.user"));
+        mysqlDataSource.setPassword(props.getString("db.pwd"));
+        return mysqlDataSource;
+    }
 
 }

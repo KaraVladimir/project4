@@ -8,6 +8,7 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
 /**
+ * Initiates logger for application
  * @author kara.vladimir2@gmail.com.
  */
 public class ServletListener implements ServletContextListener {

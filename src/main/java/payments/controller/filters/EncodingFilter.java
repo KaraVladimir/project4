@@ -5,6 +5,7 @@ import java.io.IOException;
 
 /**
  * Modifies request encoding
+ *
  * @author kara.vladimir2@gmail.com.
  */
 public class EncodingFilter implements Filter {

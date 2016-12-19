@@ -5,33 +5,11 @@
 <body>
 <%@include file="/WEB-INF/view/parts/header.jsp" %>
 <div id="content">
-    <div class="content-bigcontainer">
+    <div class="content-bigContainer">
         <div class="container-header"><fmt:message key="your.accounts"/></div>
-        <table>
-            <tr>
-                <td><fmt:message key="table.acc.id"/> </td>
-                <td><fmt:message key="table.acc.number"/></td>
-                <td><fmt:message key="table.acc.balance"/></td>
-                <td><fmt:message key="table.acc.status"/></td>
-            </tr>
-            <c:forEach items="${requestScope[Attrs.ALL_ACCOUNTS]}" var="account" varStatus="counter">
-                <tr>
-                    <td><c:out value="${account.getID()}"/></td>
-                    <td><c:out value="${account.getAccountNumber()}"/></td>
-                    <td><c:out value="${account.getAccountBalance()}"/></td>
-                    <td>
-                        <c:choose>
-                            <c:when test="${account.isBlocked()}">
-                                <fmt:message key="table.acc.block"/>
-                            </c:when>
-                            <c:otherwise>
-                                <fmt:message key="table.acc.unblock"/>
-                            </c:otherwise>
-                        </c:choose>
-                    </td>
-                </tr>
-            </c:forEach>
-        </table>
+        <c:if test="${not empty requestScope[Attrs.ALL_ACCOUNTS]}">
+            <ctg:tagTable accounts="${requestScope[Attrs.ALL_ACCOUNTS]}">&nbsp;</ctg:tagTable>
+        </c:if>
     </div>
 
     <%@include file="/WEB-INF/view/parts/message_container.jsp" %>

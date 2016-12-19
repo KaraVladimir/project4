@@ -6,9 +6,10 @@ import java.util.List;
 
 /**
  * Contains common functionality for all dao objects
+ *
  * @author kara.vladimir2@gmail.com.
  */
-public interface GenericDao<T extends Identified<PK>,PK extends Number> {
+public interface GenericDao<T extends Identified<PK>, PK extends Number> {
 
     T save(T t) throws DaoException;
 

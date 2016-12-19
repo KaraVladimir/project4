@@ -29,6 +29,7 @@ public class Account implements Identified<Integer> {
     public void setID(Integer integer) {
         this.id = integer;
     }
+
     @Override
     public Integer getID() {
         return id;
@@ -53,7 +54,10 @@ public class Account implements Identified<Integer> {
     public void addBalance(BigDecimal amount) {
         accountBalance = accountBalance.add(amount);
     }
+
     public void deductBalance(BigDecimal amount) {
         accountBalance = accountBalance.subtract(amount);
     }
+
+
 }

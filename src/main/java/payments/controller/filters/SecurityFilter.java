@@ -1,19 +1,22 @@
 package payments.controller.filters;
 
 import org.apache.log4j.Logger;
-import payments.config.Attrs;
-import payments.config.Pages;
+import payments.helper.Attrs;
+import payments.helper.Msgs;
+import payments.helper.Pages;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static payments.helper.Msgs.*;
+
 /**
- *
+ * Prevents unauthorized access
  * @author kara.vladimir2@gmail.com.
  */
-public class SecurityFilter implements Filter{
+public class SecurityFilter implements Filter {
     private static final Logger LOG = Logger.getLogger(SecurityFilter.class);
 
     @Override
@@ -28,23 +31,24 @@ public class SecurityFilter implements Filter{
         Object userId = request.getSession().getAttribute(Attrs.USER_ID);
         if (userId == null) {
             if (!request.getRequestURI().equals(Pages.PATH_HOME)) {
-                LOG.trace("to login page");
+                LOG.info(forLog(UNAUTHORIZED_ACCESS));
                 request.getRequestDispatcher(Pages.PAGE_LOGIN).forward(request, response);
             }
         } else {
             boolean isAdm = (boolean) request.getSession().getAttribute(Attrs.IS_ADMIN);
             String uri = request.getRequestURI();
-            if (isAdm&&uri.startsWith(Pages.PATH_USR)) {
-                LOG.trace("to user page");
+            if (isAdm && uri.startsWith(Pages.PATH_USR)) {
+                LOG.info(forLog(UNAUTHORIZED_ACCESS));
                 request.getRequestDispatcher(Pages.PAGE_ADMIN_START).forward(request, response);
             }
-            if (!isAdm&&uri.startsWith(Pages.PATH_ADM)) {
-                LOG.trace("to user page");
+            if (!isAdm && uri.startsWith(Pages.PATH_ADM)) {
+                LOG.info(forLog(UNAUTHORIZED_ACCESS));
                 request.getRequestDispatcher(Pages.PAGE_USER_START).forward(request, response);
             }
         }
         filterChain.doFilter(servletRequest, servletResponse);
     }
+
     @Override
     public void destroy() {
 

@@ -7,6 +7,7 @@ import java.util.List;
 
 /**
  * Represents client.
+ *
  * @author kara.vladimir2@gmail.com.
  */
 public class Client implements Identified<Integer> {
@@ -31,6 +32,7 @@ public class Client implements Identified<Integer> {
     public void setID(Integer integer) {
         this.id = integer;
     }
+
     @Override
     public Integer getID() {
         return id;

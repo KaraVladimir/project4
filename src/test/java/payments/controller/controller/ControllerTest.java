@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import static org.mockito.Mockito.*;
+
 import org.mockito.Mock;
 
 import java.util.List;
@@ -44,7 +45,7 @@ public class ControllerTest {
     @Captor
     ArgumentCaptor<String> dispatcherArgCaptor;
 
-    MainController testedController;
+    private MainController testedController;
 
     @Before
     public void init() {

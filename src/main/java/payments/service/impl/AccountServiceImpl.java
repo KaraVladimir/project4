@@ -2,27 +2,25 @@ package payments.service.impl;
 
 import payments.exception.AppException;
 import payments.model.dao.*;
-import payments.model.dao.exception.DaoException;
 import payments.model.dao.impl.DaoFactoryImpl;
-import payments.model.dao.impl.DaoManagerImpl;
 import payments.model.entities.Account;
-import payments.model.entities.CreditCard;
 import payments.model.entities.Payment;
 import payments.model.entities.TypeOfPayment;
 import payments.service.AccountService;
 import payments.service.exception.ServiceException;
-import payments.config.Msgs;
+import payments.helper.Msgs;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 /**
+ * Service for commands bundles with accounts
  * @author kara.vladimir2@gmail.com.
  */
 public class AccountServiceImpl implements payments.service.AccountService {
     private static final org.apache.log4j.Logger LOG = org.apache.log4j.Logger.getLogger(UserServiceImpl.class);
 
-    DaoFactory daoFactory = DaoFactoryImpl.getInstance();
+    private DaoFactory daoFactory = DaoFactoryImpl.getInstance();
 
     private static class Holder {
         private static final AccountService instance = new AccountServiceImpl();
@@ -34,10 +32,10 @@ public class AccountServiceImpl implements payments.service.AccountService {
 
     @Override
     public Account findAccountByNumber(String number) throws AppException {
-        Account account = null;
-        try (DaoManager daoManager = daoFactory.getDaoManager() ) {
+        Account account;
+        try (DaoManager daoManager = daoFactory.getDaoManager()) {
             AccountDao accountDao = (AccountDao) daoManager.getDao(Account.class);
-            account = (Account) accountDao.findAccountByNumber(number);
+            account = accountDao.findAccountByNumber(number);
             checkAccountIsNull(account);
         }
         return account;
@@ -45,104 +43,90 @@ public class AccountServiceImpl implements payments.service.AccountService {
 
     @Override
     public Account unblockAccountByID(Integer id) throws AppException {
-        Account account = null;
+        Account account;
         try (DaoManager daoManager = daoFactory.getDaoManager()) {
-            account = (Account) daoManager.transaction(daoManager1 -> {
-                AccountDao accountDao = (AccountDao) daoManager1.getDao(Account.class);
-                Account account1 = (Account) accountDao.read(id);
-                checkAccountIsNull(account1);
-                checkAccountIsNotBlocked(account1);
-                account1.setBlocked(false);
-                accountDao.update(account1);
-                return account1;
-            });
-
+            daoManager.beginTransaction();
+            AccountDao accountDao = (AccountDao) daoManager.getDao(Account.class);
+            account = (Account) accountDao.read(id);
+            checkAccountIsNull(account);
+            checkAccountIsNotBlocked(account);
+            account.setBlocked(false);
+            accountDao.update(account);
+            daoManager.commitTransaction();
         }
         return account;
     }
-
 
 
     @Override
     public Account block(Integer accId) throws AppException {
-        Account account = null;
-
+        Account account;
         try (DaoManager daoManager = daoFactory.getDaoManager()) {
-            account = (Account) daoManager.transaction(daoManager1 -> {
-                AccountDao accountDao = (AccountDao) daoManager1.getDao(Account.class);
-                Account acc = (Account) accountDao.read(accId);
-                checkAccountIsNull(acc);
-                checkAccountIsBlocked(acc);
-                acc.setBlocked(true);
-                accountDao.update(acc);
-                return acc;
-            });
+            daoManager.beginTransaction();
+            AccountDao accountDao = (AccountDao) daoManager.getDao(Account.class);
+            account = (Account) accountDao.read(accId);
+            checkAccountIsNull(account);
+            checkAccountIsBlocked(account);
+            account.setBlocked(true);
+            accountDao.update(account);
+            daoManager.commitTransaction();
         }
         return account;
     }
 
 
-
     @Override
     public Payment pay(Integer accS_id, String number, BigDecimal amount) throws AppException {
-        Payment payment = null;
+        Payment payment;
         try (DaoManager daoManager = daoFactory.getDaoManager()) {
             AccountDao accountDao = (AccountDao) daoManager.getDao(Account.class);
             PaymentDao paymentDao = (PaymentDao) daoManager.getDao(Payment.class);
-            CreditCardDao creditCardDao = (CreditCardDao) daoManager.getDao(CreditCard.class);
 
-            payment = (Payment) daoManager.transaction(daoManager1 -> {
-                Payment payment1 = null;
-                Account accountSender = (Account) accountDao.findByPKForUpdate(accS_id);
-                Account accountRecipient = accountDao.findAccountByNumber(number);
-                accountRecipient = accountDao.findByPKForUpdate(accountRecipient.getID());
+            daoManager.beginTransaction();
+            Account accountSender = accountDao.findByPKForUpdate(accS_id);
+            Account accountRecipient = accountDao.findAccountByNumber(number);
 
-                AccountServiceImpl.this.checkAccountIsNull(accountSender);
-                AccountServiceImpl.this.checkAccountIsNull(accountRecipient);
 
-                AccountServiceImpl.this.checkBalance(amount, accountSender);
-                AccountServiceImpl.this.checkAccountIsBlocked(accountSender);
+            AccountServiceImpl.this.checkAccountIsNull(accountSender);
+            AccountServiceImpl.this.checkAccountIsNull(accountRecipient);
 
-                CreditCard creditCardSender = creditCardDao.findCreditCardByAccount(accountSender);
-                payment1 = new Payment(amount, TypeOfPayment.PAYMENT, creditCardSender.getClient(),
-                        accountSender, creditCardSender, accountRecipient);
-                payment1 = (Payment) paymentDao.save(payment1);
-                accountRecipient.addBalance(amount);
-                accountDao.update(accountRecipient);
-                accountSender.deductBalance(amount);
-                accountDao.update(accountSender);
-                return payment1;
-            });
+            accountRecipient = accountDao.findByPKForUpdate(accountRecipient.getID());
+
+            AccountServiceImpl.this.checkBalance(amount, accountSender);
+            AccountServiceImpl.this.checkAccountIsBlocked(accountSender);
+
+            payment = new Payment(amount, TypeOfPayment.PAYMENT, accountSender, accountRecipient);
+            payment = (Payment) paymentDao.save(payment);
+            accountRecipient.addBalance(amount);
+            accountDao.update(accountRecipient);
+            accountSender.deductBalance(amount);
+            accountDao.update(accountSender);
+            daoManager.commitTransaction();
         }
         return payment;
     }
 
     @Override
     public Payment refill(Integer accS_id, BigDecimal amount) throws AppException {
-        Payment payment = null;
-        try (DaoManager daoManager = daoFactory.getDaoManager()){
+        Payment payment;
+        try (DaoManager daoManager = daoFactory.getDaoManager()) {
             AccountDao accountDao = (AccountDao) daoManager.getDao(Account.class);
             PaymentDao paymentDao = (PaymentDao) daoManager.getDao(Payment.class);
-
-            payment = (Payment) daoManager.transaction(daoManager1 -> {
-                Payment payment1 = null;
-                Account account = (Account) accountDao.findByPKForUpdate(accS_id);
-                payment1 = new Payment(amount, TypeOfPayment.REFILL,null,
-                        null, null, account);
-                payment1 = (Payment) paymentDao.save(payment1);
-                account.addBalance(amount);
-                accountDao.update(account);
-                return payment1;
-            });
-
+            daoManager.beginTransaction();
+            Account account = accountDao.findByPKForUpdate(accS_id);
+            payment = new Payment(amount, TypeOfPayment.REFILL, null, account);
+            payment = (Payment) paymentDao.save(payment);
+            account.addBalance(amount);
+            accountDao.update(account);
+            daoManager.commitTransaction();
         }
         return payment;
     }
 
     @Override
     public List<Account> findBlocked() throws AppException {
-        List<Account> accounts = null;
-        try (DaoManager daoManager = daoFactory.getDaoManager()){
+        List<Account> accounts;
+        try (DaoManager daoManager = daoFactory.getDaoManager()) {
             AccountDao accountDao = (AccountDao) daoManager.getDao(Account.class);
             accounts = accountDao.findBlockedAccounts();
         }

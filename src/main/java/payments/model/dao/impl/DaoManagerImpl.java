@@ -1,5 +1,6 @@
 package payments.model.dao.impl;
 
+import payments.helper.Msgs;
 import payments.exception.AppException;
 import payments.model.dao.DaoCommand;
 import payments.model.dao.GenericDao;
@@ -24,11 +25,7 @@ import java.util.Map;
 public class DaoManagerImpl implements DaoManager {
     private static final Logger LOG = Logger.getLogger(DaoManagerImpl.class);
 
-    public static final String NO_DAO_FOR_THIS_ENTITY = "doesn't exist dao for this entity";
-    public static final String ROLLBACK_FAILED = "rollback failed";
-    public static final String COMMIT_FAILED = "commit failed";
-    public static final String SET_AUTO_COMMIT_FAILED = "setAutoCommit failed";
-    public static final String CLOSE_CONNECTION_FAILED = "close connection failed";
+    private boolean flagTransactionProcess = false;
 
     private Connection connection = null;
     /**
@@ -57,25 +54,28 @@ public class DaoManagerImpl implements DaoManager {
 
     /**
      * get dao object
+     *
      * @param dtoClazz
      * @return
      */
-    public <T extends Identified<PK>, PK extends Number> GenericDao<T, PK> getDao(Class<? extends Identified> dtoClazz) throws DaoException {
+    public <T extends Identified<PK>, PK extends Number> GenericDao getDao(Class<? extends Identified> dtoClazz) throws DaoException {
         Class daoClazz = classHashMap.get(dtoClazz);
         try {
             return (GenericDao) daoClazz.getDeclaredConstructor(Connection.class).
                     newInstance(getConnection());
         } catch (Exception e) {
-            throw new DaoException(LOG,NO_DAO_FOR_THIS_ENTITY, e);
+            throw new DaoException(LOG, Msgs.NO_DAO_FOR_THIS_ENTITY, e);
         }
     }
 
     /**
      * represents universal transaction for DaoCommand
+     * deprecate because too complicate for test
      *
      * @param command
      * @return
      */
+    @Deprecated
     public Object transaction(DaoCommand command) throws AppException {
         try {
             this.connection.setAutoCommit(false);
@@ -86,30 +86,62 @@ public class DaoManagerImpl implements DaoManager {
             try {
                 this.connection.rollback();
             } catch (SQLException e1) {
-                throw new DaoException(LOG, ROLLBACK_FAILED, e1);
+                throw new DaoException(LOG, Msgs.ROLLBACK_FAILED, e1);
             }
             throw new ServiceException(LOG, e.getMessage());
         } catch (Exception e) {
             try {
                 this.connection.rollback();
             } catch (SQLException e1) {
-                throw new DaoException(LOG, ROLLBACK_FAILED, e1);
+                throw new DaoException(LOG, Msgs.ROLLBACK_FAILED, e1);
             }
-            throw new DaoException(LOG, COMMIT_FAILED, e);
+            throw new DaoException(LOG, Msgs.COMMIT_FAILED, e);
         } finally {
             try {
                 this.connection.setAutoCommit(true);
             } catch (SQLException e) {
-                throw new DaoException(LOG, SET_AUTO_COMMIT_FAILED, e);
+                throw new DaoException(LOG, Msgs.SET_AUTO_COMMIT_FAILED, e);
             }
+        }
+    }
+
+    @Override
+    public void beginTransaction() throws DaoException {
+        try {
+            connection.setAutoCommit(false);
+            flagTransactionProcess = false;
+        } catch (SQLException e) {
+            throw new DaoException(LOG, Msgs.SET_AUTO_COMMIT_FAILED, e);
+        }
+    }
+
+    @Override
+    public void commitTransaction() throws DaoException {
+        try {
+            connection.commit();
+            connection.setAutoCommit(true);
+            flagTransactionProcess = false;
+        } catch (SQLException e) {
+            throw new DaoException(LOG, Msgs.COMMIT_FAILED, e);
+        }
+    }
+
+    @Override
+    public void rollbackTransaction() throws DaoException {
+        try {
+            connection.rollback();
+            connection.setAutoCommit(true);
+        } catch (SQLException e) {
+            throw new DaoException(LOG, Msgs.ROLLBACK_FAILED, e);
         }
     }
 
     public void close() throws DaoException {
         try {
+            if (flagTransactionProcess) connection.rollback();
             connection.close();
         } catch (Exception e) {
-            throw new DaoException(LOG,CLOSE_CONNECTION_FAILED, e);
+            throw new DaoException(LOG, Msgs.CLOSE_CONNECTION_FAILED, e);
         }
     }
 }

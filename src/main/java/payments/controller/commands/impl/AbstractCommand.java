@@ -1,12 +1,13 @@
 package payments.controller.commands.impl;
 
+import payments.helper.Msgs;
 import payments.exception.AppException;
 import org.apache.log4j.Logger;
 import org.apache.log4j.MDC;
 import payments.service.exception.ServiceException;
 import payments.controller.commands.Command;
-import payments.config.Attrs;
-import payments.config.Pages;
+import payments.helper.Attrs;
+import payments.helper.Pages;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -14,30 +15,25 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.math.BigDecimal;
 
+import static payments.helper.Msgs.*;
+
 /**
+ * Represents common functionality for all commands
  * @author kara.vladimir2@gmail.com.
  */
 public abstract class AbstractCommand implements Command {
     private static final Logger LOG = Logger.getLogger(AbstractCommand.class);
 
-    public static final String BAD_PARSING_ID = "Parsing id is failed";
-    public static final String BAD_PARSING_BIGDECIMAL = "Parsing amount is failed";
-    public static final String INCORRECT_ACCOUNT_ID = "Incorrect account ID";
-    public static final String INCORRECT_ACCOUNT_NUMBER = "Incorrect account number";
-    public static final String INCORRECT_USER_ID = "Incorrect user ID";
-    public static final String ERR_LOGIN = "Wrong login or password";
-    public static final String EMPTY_LOGIN = "Empty login";
-    public static final String EMPTY_PASS = "Empty password";
-    public static final String INCORRECT_AMOUNT = "Incorrect amount";
-    public static final String ACCOUNT_NOT_EXIST = "Account doesn't exist";
-    public static final String ERR_DB = "DB ERROR!";
-    public static final String UNKNOWN_ERR = "UNKNOWN ERROR!";
 
-
-
+    /**
+     * For intercepting exception
+     * @param request
+     * @param response
+     * @return path to next page
+     */
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response) {
-        String path = null;
+        String path;
         try {
             path = proceedExecute(request, response);
         } catch (ServiceException e) {
@@ -45,19 +41,23 @@ public abstract class AbstractCommand implements Command {
             request.setAttribute(Attrs.MSG, e.getMessage());
             Integer userId = (Integer) request.getSession().getAttribute(Attrs.USER_ID);
             MDC.put("userID", (userId == null) ? "n/a" : userId);
-            (e.getLogger()).info(e.getMessage());
+
+            (e.getLogger()).info(forLog(e.getMessage()));
         } catch (AppException e) {
             path = Pages.mapTransition.get(request.getRequestURI());
             request.setAttribute(Attrs.MSG, ERR_DB);
             Integer userId = (Integer) request.getSession().getAttribute(Attrs.USER_ID);
             MDC.put("userID", (userId == null) ? "n/a" : userId);
             e.printStackTrace();
-            (e.getLogger()).error(e.getMessage());
+
+            (e.getLogger()).error(forLog(e.getMessage()));
+
         } catch (Exception e) {
             path = Pages.mapTransition.get(request.getRequestURI());
             request.setAttribute(Attrs.MSG, UNKNOWN_ERR);
             Integer userId = (Integer) request.getSession().getAttribute(Attrs.USER_ID);
             MDC.put("userID", (userId == null) ? "n/a" : userId);
+
             StringWriter errors = new StringWriter();
             e.printStackTrace(new PrintWriter(errors));
             LOG.error(e.getMessage());
@@ -67,7 +67,8 @@ public abstract class AbstractCommand implements Command {
         return path;
     }
 
-    public abstract String proceedExecute
+
+    protected abstract String proceedExecute
             (HttpServletRequest request, HttpServletResponse httpServletResponse) throws AppException;
 
     @Override
@@ -76,38 +77,38 @@ public abstract class AbstractCommand implements Command {
     }
 
 
-    protected void checkNullOrEmptyString(Logger logger, String str, String textErr) throws ServiceException {
+    void checkNullOrEmptyString(Logger logger, String str, String textErr) throws ServiceException {
         if (str == null || str.isEmpty()) {
             throw new ServiceException(logger, textErr);
         }
     }
 
-    protected void checkNullObject(Logger logger, Object o, String textErr) throws ServiceException {
+    void checkNullObject(Logger logger, Object o, String textErr) throws ServiceException {
         if (o == null) {
             throw new ServiceException(logger, textErr);
         }
     }
 
-    protected Integer checkAndParsingStringToInteger(Logger logger, String str) throws ServiceException {
-        Integer integ;
+    private Integer checkAndParsingStringToInteger(Logger logger, String str) throws ServiceException {
+        Integer integer;
         try {
-            integ = Integer.parseInt(str);
-        }catch (NumberFormatException e) {
+            integer = Integer.parseInt(str);
+        } catch (NumberFormatException e) {
             throw new ServiceException(logger, BAD_PARSING_ID);
         }
-        return integ;
+        return integer;
     }
 
-    protected Integer getIdFromString(Logger logger,String param,String errMsg) throws ServiceException {
+    Integer getIdFromString(Logger logger, String param) throws ServiceException {
         Integer id;
-        checkNullOrEmptyString(logger,param, errMsg);
+        checkNullOrEmptyString(logger, param, INCORRECT_ACCOUNT_ID);
         id = checkAndParsingStringToInteger(logger, param);
         return id;
     }
 
-    protected BigDecimal getBigDecimalFromString(Logger logger,String param,String errMsg) throws ServiceException {
+    BigDecimal getBigDecimalFromString(Logger logger, String param) throws ServiceException {
         BigDecimal bigDecimal;
-        checkNullOrEmptyString(logger,param, errMsg);
+        checkNullOrEmptyString(logger, param, INCORRECT_AMOUNT);
         try {
             bigDecimal = new BigDecimal(param);
         } catch (NumberFormatException e) {

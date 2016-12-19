@@ -1,7 +1,6 @@
 package payments.controller.service;
 
 import data.test.Users;
-import org.junit.Assert;
 import org.mockito.InjectMocks;
 import payments.controller.security.Coder;
 import payments.exception.AppException;
@@ -51,10 +50,10 @@ public class UserServiceImplTest {
     @Test
     public void testLogin() throws AppException, SQLException {
         service.login("user1", Coder.INSTANCE.getHash("q"));
-        verify(mockedUserDao,times(1)).findUserByLogin("user1");
+        verify(mockedUserDao, times(1)).findUserByLogin("user1");
     }
 
-//    @Test
+    //    @Test
     public void testFindUserAccounts() throws AppException {
         service.findAvailableUserAccounts(1);
     }

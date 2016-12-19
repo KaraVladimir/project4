@@ -25,11 +25,11 @@ public class TestDaoFactory {
         }
         try {
             connection = DriverManager.getConnection
-                    (props.getString("db.url"),props.getString("db.user"),props.getString("db.pwd"));
+                    (props.getString("db.url"), props.getString("db.user"), props.getString("db.pwd"));
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        Assert.assertTrue(connection!=null);
+        Assert.assertTrue(connection != null);
     }
 
     @Test
@@ -40,6 +40,6 @@ public class TestDaoFactory {
         } catch (DaoException e) {
             e.printStackTrace();
         }
-        Assert.assertTrue(daoManager!=null);
+        Assert.assertTrue(daoManager != null);
     }
 }

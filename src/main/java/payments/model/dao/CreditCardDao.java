@@ -6,8 +6,9 @@ import payments.model.entities.CreditCard;
 
 /**
  * interface for dao object {@link CreditCard}
+ *
  * @author kara.vladimir2@gmail.com.
  */
-public interface CreditCardDao extends GenericDao{
+public interface CreditCardDao extends GenericDao {
     CreditCard findCreditCardByAccount(Account account) throws DaoException;
 }

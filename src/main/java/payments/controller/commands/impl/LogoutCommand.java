@@ -2,13 +2,14 @@ package payments.controller.commands.impl;
 
 import payments.exception.AppException;
 import org.apache.log4j.Logger;
-import payments.config.Attrs;
-import payments.config.Pages;
+import payments.helper.Attrs;
+import payments.helper.Pages;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
+ * Command for exit
  * @author kara.vladimir2@gmail.com.
  */
 public class LogoutCommand extends AbstractCommand {

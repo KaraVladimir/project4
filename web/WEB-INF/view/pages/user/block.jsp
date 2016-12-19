@@ -5,7 +5,7 @@
 <body>
 <%@include file="/WEB-INF/view/parts/header.jsp" %>
 <div id="content">
-    <div class="content-bigcontainer">
+    <div class="content-bigContainer">
         <c:if test="${not empty requestScope[Attrs.AVAILABLE_ACCOUNTS]}">
             <form id="block"
                   action="${Pages.PATH_BLOCK}" method="post">
@@ -13,7 +13,7 @@
                 <c:set var="accounts" value="${requestScope[Attrs.AVAILABLE_ACCOUNTS]}" scope="request"/>
                 <table>
                     <tr>
-                        <td><fmt:message key="table.acc.id"/> </td>
+                        <td><fmt:message key="table.acc.id"/></td>
                         <td><fmt:message key="table.acc.number"/></td>
                         <td><fmt:message key="table.acc.balance"/></td>
                         <td><fmt:message key="table.acc.action"/></td>
@@ -25,7 +25,7 @@
                             <td><c:out value="${account.getAccountBalance()}"/></td>
                             <td>
                                 <button name="${Attrs.ACCOUNT_ID}" value="${account.getID()}" class="table-button">
-                                    <fmt:message key="table.acc.button.block"/> </button>
+                                    <fmt:message key="table.acc.button.block"/></button>
                             </td>
                         </tr>
                     </c:forEach>
@@ -34,7 +34,7 @@
             </form>
         </c:if>
     </div>
-    <%@include file="/WEB-INF/view/parts/message_container.jsp"%>
+    <%@include file="/WEB-INF/view/parts/message_container.jsp" %>
 </div>
 </body>
 </html>

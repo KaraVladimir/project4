@@ -7,9 +7,10 @@ import java.util.List;
 
 /**
  * interface for dao object {@link Account}
+ *
  * @author kara.vladimir2@gmail.com.
  */
-public interface AccountDao extends GenericDao{
+public interface AccountDao extends GenericDao {
     List<Account> findBlockedAccounts() throws DaoException;
 
     Account findAccountByNumber(String number) throws DaoException;

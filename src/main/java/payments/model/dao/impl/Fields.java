@@ -3,7 +3,7 @@ package payments.model.dao.impl;
 /**
  * @author kara.vladimir2@gmail.com.
  */
-public final class Fields {
+final class Fields {
     public static final String T_ACC = "account";
     public static final String ACC_ID = "idAcc";
     public static final String ACC_NUMBER = "numberAcc";
@@ -28,9 +28,7 @@ public final class Fields {
     public static final String PAY_TIME = "timeStampPay";
     public static final String PAY_AMOUNT = "amountPay";
     public static final String PAY_TYPE = "typePay";
-    public static final String PAY_ID_SENDER_CLIENT = "FK_Pay_idSenderCl";
     public static final String PAY_ID_SENDER_ACCOUNT = "FK_Pay_idSenderAcc";
-    public static final String PAY_ID_SENDER_CARD = "FK_Pay_idSenderCc";
     public static final String PAY_ID_RECIP_ACCOUNT = "FK_Pay_idRecipientAcc";
 
     public static final String T_CARD = "creditCard";

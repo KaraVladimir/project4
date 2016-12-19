@@ -1,21 +1,20 @@
 package payments.controller.service;
 
 import data.test.Accounts;
+import data.test.Cards;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import payments.exception.AppException;
 import payments.model.dao.*;
-import payments.model.dao.exception.DaoException;
 import payments.model.entities.Account;
 import payments.model.entities.CreditCard;
 import payments.model.entities.Payment;
 import payments.service.AccountService;
 import payments.service.exception.ServiceException;
 import payments.service.impl.AccountServiceImpl;
+
 import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
@@ -23,9 +22,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author kara.vladimir2@gmail.com.
@@ -55,7 +52,9 @@ public class AccountServiceImplTest {
     @InjectMocks
     private AccountService service = AccountServiceImpl.getInstance();
 
-    private Integer accId;
+    private Integer accIdS;
+    private String numberR;
+    private Integer accIdR;
     private static List<Account> accounts = initAccounts();
 
     private static List<Account> initAccounts() {
@@ -69,8 +68,11 @@ public class AccountServiceImplTest {
     private static Account findAccById(Integer id) {
         return accounts.stream().filter(account -> account.getID().equals(id)).collect(Collectors.toList()).get(0);
     }
+
     private static Account findAccByNumber(String number) {
-        return accounts.stream().filter(account -> account.getAccountNumber().equals(number)).collect(Collectors.toList()).get(0);
+        List<Account> list = accounts.stream().filter(account -> account.getAccountNumber().equals(number)).collect(Collectors.toList());
+        if (list.size() > 0) return list.get(0);
+        else return null;
     }
 
     @Before
@@ -90,27 +92,62 @@ public class AccountServiceImplTest {
         when(mockedAccountDao.findAccountByNumber(anyString())).thenReturn(Accounts.ACC1.account);
         Account account = service.findAccountByNumber("1234");
         verify(mockedAccountDao, times(1)).findAccountByNumber(Accounts.ACC1.account.getAccountNumber());
-        Assert.assertEquals(account,Accounts.ACC1.account);
+        Assert.assertEquals(account, Accounts.ACC1.account);
     }
 
     @Test(expected = ServiceException.class)
     public void findAccountByNumberNullTest() throws AppException {
         when(mockedAccountDao.findAccountByNumber(anyString())).thenReturn(null);
-        Account account = service.findAccountByNumber("1234");
+        service.findAccountByNumber(numberR);
     }
 
     @Test
-    public void payTest() throws AppException {
-        accId = Accounts.ACC1.account.getID();
-        when(mockedAccountDao.findByPKForUpdate(accId)).thenReturn(findAccById(accId));
-        when(daoManager.transaction(Mockito.<DaoCommand>any())).thenAnswer(invocationOnMock -> {
-            Object[] args = invocationOnMock.getArguments();
-            DaoCommand arg = (DaoCommand) args[0];
-            Object o = daoCommand.execute(daoManager);
-            return o;
-        });
-//        when()
+    public void payTestNormal() throws AppException {
+        accIdS = Accounts.ACC1.account.getID();
+        numberR = Accounts.ACC2.account.getAccountNumber();
+        accIdR = Accounts.ACC2.account.getID();
+        BigDecimal amount = new BigDecimal("10");
+        BigDecimal balanceS = Accounts.ACC1.account.getAccountBalance();
+        BigDecimal balanceR = Accounts.ACC2.account.getAccountBalance();
 
-        service.pay(accId, Accounts.ACC2.account.getAccountNumber(), new BigDecimal("10"));
+        when(mockedAccountDao.findByPKForUpdate(accIdS)).thenReturn(findAccById(accIdS));
+        when(mockedAccountDao.findAccountByNumber(numberR)).thenReturn(findAccByNumber(numberR));
+        when(mockedAccountDao.findByPKForUpdate(accIdR)).thenReturn(findAccById(accIdR));
+        when(mockedCardDao.findCreditCardByAccount(any())).thenReturn(Cards.CARD1.card);
+        when(mockedPaymentDao.save(any())).thenAnswer(invocationOnMock -> invocationOnMock.getArguments()[0]);
+        service.pay(accIdS, numberR, amount);
+        Assert.assertEquals(Accounts.ACC1.account.getAccountBalance(), balanceS.subtract(amount));
+        Assert.assertEquals(Accounts.ACC2.account.getAccountBalance(), balanceR.add(amount));
     }
+
+    @Test(expected = ServiceException.class)
+    public void payTestNotEnoughMoney() throws AppException {
+        accIdS = Accounts.ACC1.account.getID();
+        numberR = Accounts.ACC2.account.getAccountNumber();
+        accIdR = Accounts.ACC2.account.getID();
+        BigDecimal amount = new BigDecimal("10000");
+
+        when(mockedAccountDao.findByPKForUpdate(accIdS)).thenReturn(findAccById(accIdS));
+        when(mockedAccountDao.findAccountByNumber(numberR)).thenReturn(findAccByNumber(numberR));
+        when(mockedAccountDao.findByPKForUpdate(accIdR)).thenReturn(findAccById(accIdR));
+        when(mockedCardDao.findCreditCardByAccount(any())).thenReturn(Cards.CARD1.card);
+        when(mockedPaymentDao.save(any())).thenAnswer(invocationOnMock -> invocationOnMock.getArguments()[0]);
+        service.pay(accIdS, numberR, amount);
+    }
+
+    @Test(expected = ServiceException.class)
+    public void payTestRecipientDoesNotExist() throws AppException {
+        accIdS = Accounts.ACC1.account.getID();
+        numberR = "9999";
+        accIdR = Accounts.ACC2.account.getID();
+        BigDecimal amount = new BigDecimal("10");
+
+        when(mockedAccountDao.findByPKForUpdate(accIdS)).thenReturn(findAccById(accIdS));
+        when(mockedAccountDao.findAccountByNumber(numberR)).thenReturn(findAccByNumber(numberR));
+        when(mockedAccountDao.findByPKForUpdate(accIdR)).thenReturn(findAccById(accIdR));
+        when(mockedCardDao.findCreditCardByAccount(any())).thenReturn(Cards.CARD1.card);
+        when(mockedPaymentDao.save(any())).thenAnswer(invocationOnMock -> invocationOnMock.getArguments()[0]);
+        service.pay(accIdS, numberR, amount);
+    }
+
 }
