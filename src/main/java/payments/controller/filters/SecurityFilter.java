@@ -39,11 +39,11 @@ public class SecurityFilter implements Filter {
             String uri = request.getRequestURI();
             if (isAdm && uri.startsWith(Pages.PATH_USR)) {
                 LOG.info(forLog(UNAUTHORIZED_ACCESS));
-                request.getRequestDispatcher(Pages.PAGE_ADMIN_START).forward(request, response);
+                request.getRequestDispatcher(Pages.PATH_HOME).forward(request, response);
             }
             if (!isAdm && uri.startsWith(Pages.PATH_ADM)) {
                 LOG.info(forLog(UNAUTHORIZED_ACCESS));
-                request.getRequestDispatcher(Pages.PAGE_USER_START).forward(request, response);
+                request.getRequestDispatcher(Pages.PATH_HOME).forward(request, response);
             }
         }
         filterChain.doFilter(servletRequest, servletResponse);
